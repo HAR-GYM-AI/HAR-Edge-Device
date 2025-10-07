@@ -16,6 +16,7 @@ from enum import IntEnum
 from dataclasses import dataclass
 from typing import Optional
 
+
 # CONSTANTS & ENUMS
 class NodePlacement(IntEnum):
     """Node placement identifiers matching Arduino firmware"""
@@ -40,6 +41,7 @@ CMD_RESET = 0x05
 CMD_TIME_SYNC = 0x06
 CMD_TOGGLE_WINDOWING = 0x07
 CMD_HEARTBEAT = 0xFF
+
 
 # DATA structs
 @dataclass
