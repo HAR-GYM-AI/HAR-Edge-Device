@@ -20,30 +20,47 @@ def plot_quaternions(data, output_file=None):
     device1_name = data['session_metadata']['devices'][devices[0]]['node_name']
     device2_name = data['session_metadata']['devices'][devices[1]]['node_name']
     
-    # Extract all samples from all windows
+    # Extract all samples from all windows with NaN separators between windows
+    # This prevents matplotlib from drawing lines between disconnected windows
     timestamps1 = []
     qw1, qx1, qy1, qz1 = [], [], [], []
     
     for window in device1_data:
         for sample in window['samples']:
-            # Use 'timestamp_ms' key (the correct key in the JSON)
-            timestamps1.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            # Falls back to 'timestamp_ms' for backward compatibility with old data
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps1.append(timestamp)
             qw1.append(sample['qw'])
             qx1.append(sample['qx'])
             qy1.append(sample['qy'])
             qz1.append(sample['qz'])
+        # Add NaN separator between windows to create line breaks
+        timestamps1.append(np.nan)
+        qw1.append(np.nan)
+        qx1.append(np.nan)
+        qy1.append(np.nan)
+        qz1.append(np.nan)
     
     timestamps2 = []
     qw2, qx2, qy2, qz2 = [], [], [], []
     
     for window in device2_data:
         for sample in window['samples']:
-            # Use 'timestamp_ms' key (the correct key in the JSON)
-            timestamps2.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            # Falls back to 'timestamp_ms' for backward compatibility with old data
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps2.append(timestamp)
             qw2.append(sample['qw'])
             qx2.append(sample['qx'])
             qy2.append(sample['qy'])
             qz2.append(sample['qz'])
+        # Add NaN separator between windows to create line breaks
+        timestamps2.append(np.nan)
+        qw2.append(np.nan)
+        qx2.append(np.nan)
+        qy2.append(np.nan)
+        qz2.append(np.nan)
     
     # Create subplots
     fig, axes = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
@@ -68,7 +85,7 @@ def plot_quaternions(data, output_file=None):
     plt.show()
 
 def plot_time_sync(data, output_file=None):
-    """Check and visualize time synchronization between IMUs"""
+    """Check and visualize time synchronization between IMUs by interpolating to common timestamps"""
     # Get device MAC addresses
     devices = list(data['device_windows'].keys())
     device1_data = data['device_windows'][devices[0]]
@@ -79,27 +96,54 @@ def plot_time_sync(data, output_file=None):
     device2_name = data['session_metadata']['devices'][devices[1]]['node_name']
     
     # Extract timestamps from all windows
+    # Note: Windows are pre-sorted chronologically at data collection time
     timestamps1 = []
     for window in device1_data:
         for sample in window['samples']:
-            timestamps1.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps1.append(timestamp)
     
     timestamps2 = []
     for window in device2_data:
         for sample in window['samples']:
-            timestamps2.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps2.append(timestamp)
     
     timestamps1 = np.array(timestamps1)
     timestamps2 = np.array(timestamps2)
     
-    # Calculate time differences
-    min_len = min(len(timestamps1), len(timestamps2))
-    time_diff = timestamps1[:min_len] - timestamps2[:min_len]
+    # Find overlapping time range
+    common_start = max(timestamps1.min(), timestamps2.min())
+    common_end = min(timestamps1.max(), timestamps2.max())
+    
+    # Create common time grid (every 10ms for 100Hz sampling)
+    common_times = np.arange(common_start, common_end, 10)
+    
+    # For each common time point, find the nearest timestamp from each device
+    # and calculate the difference
+    time_diffs = []
+    actual_times = []
+    
+    for t in common_times:
+        # Find nearest timestamps in both devices
+        idx1 = np.argmin(np.abs(timestamps1 - t))
+        idx2 = np.argmin(np.abs(timestamps2 - t))
+        
+        # Only include if both timestamps are reasonably close to the target time
+        if abs(timestamps1[idx1] - t) < 50 and abs(timestamps2[idx2] - t) < 50:
+            time_diff = timestamps1[idx1] - timestamps2[idx2]
+            time_diffs.append(time_diff)
+            actual_times.append(t)
+    
+    time_diffs = np.array(time_diffs)
+    actual_times = np.array(actual_times)
     
     plt.figure(figsize=(12, 4))
-    plt.plot(time_diff, linewidth=1.5)
-    plt.title(f'Timestamp Difference ({device1_name} - {device2_name})')
-    plt.xlabel('Sample Index')
+    plt.plot(actual_times, time_diffs, linewidth=1.5, alpha=0.7)
+    plt.title(f'Timestamp Synchronization ({device1_name} - {device2_name})')
+    plt.xlabel('Time (ms)')
     plt.ylabel('Time Difference (ms)')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='r', linestyle='--', label='Perfect Sync', linewidth=2)
@@ -107,11 +151,13 @@ def plot_time_sync(data, output_file=None):
     
     # Print statistics
     print("\n=== Time Synchronization Analysis ===")
-    print(f"Mean time difference: {np.mean(time_diff):.2f} ms")
-    print(f"Std time difference: {np.std(time_diff):.2f} ms")
-    print(f"Max time difference: {np.max(np.abs(time_diff)):.2f} ms")
-    print(f"Min time difference: {np.min(time_diff):.2f} ms")
-    print(f"Max time difference: {np.max(time_diff):.2f} ms")
+    print(f"Analyzed {len(time_diffs)} aligned time points")
+    print(f"Mean time difference: {np.mean(time_diffs):.2f} ms")
+    print(f"Std time difference: {np.std(time_diffs):.2f} ms")
+    print(f"Median time difference: {np.median(time_diffs):.2f} ms")
+    print(f"Min time difference: {np.min(time_diffs):.2f} ms")
+    print(f"Max time difference: {np.max(time_diffs):.2f} ms")
+    print(f"Time difference range: {np.max(time_diffs) - np.min(time_diffs):.2f} ms")
     
     if output_file:
         plt.savefig(output_file, dpi=300, bbox_inches='tight')
@@ -130,22 +176,32 @@ def plot_quaternion_magnitude(data, output_file=None):
     device1_name = data['session_metadata']['devices'][devices[0]]['node_name']
     device2_name = data['session_metadata']['devices'][devices[1]]['node_name']
     
-    # Extract timestamps and calculate magnitudes
+    # Extract timestamps and calculate magnitudes with NaN separators between windows
     timestamps1 = []
     mag1 = []
     for window in device1_data:
         for sample in window['samples']:
-            timestamps1.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps1.append(timestamp)
             mag = np.sqrt(sample['qw']**2 + sample['qx']**2 + sample['qy']**2 + sample['qz']**2)
             mag1.append(mag)
+        # Add NaN separator between windows to create line breaks
+        timestamps1.append(np.nan)
+        mag1.append(np.nan)
     
     timestamps2 = []
     mag2 = []
     for window in device2_data:
         for sample in window['samples']:
-            timestamps2.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps2.append(timestamp)
             mag = np.sqrt(sample['qw']**2 + sample['qx']**2 + sample['qy']**2 + sample['qz']**2)
             mag2.append(mag)
+        # Add NaN separator between windows to create line breaks
+        timestamps2.append(np.nan)
+        mag2.append(np.nan)
     
     plt.figure(figsize=(12, 4))
     plt.plot(timestamps1, mag1, label=f'{device1_name} Magnitude', alpha=0.7, linewidth=1.5)
@@ -181,12 +237,16 @@ def analyze_clock_drift(data):
     timestamps1 = []
     for window in device1_data:
         for sample in window['samples']:
-            timestamps1.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps1.append(timestamp)
     
     timestamps2 = []
     for window in device2_data:
         for sample in window['samples']:
-            timestamps2.append(sample['timestamp_ms'])
+            # Use 'absolute_timestamp_ms' for global synchronized time
+            timestamp = sample.get('absolute_timestamp_ms', sample.get('timestamp_ms', 0))
+            timestamps2.append(timestamp)
     
     if not timestamps1 or not timestamps2:
         print("Insufficient data for drift analysis")
@@ -267,11 +327,11 @@ def analyze_clock_drift(data):
     
     # Warnings
     if abs(drift1_ppm) > 1000 or abs(drift2_ppm) > 1000:
-        print("\n⚠️  WARNING: Clock drift exceeds 1000 ppm (0.1%)")
+        print("\nWARNING: Clock drift exceeds 1000 ppm (0.1%)")
         print("    This may indicate timing issues with the Arduino millis()/micros() functions")
     
     if large_jumps1 > 0 or large_jumps2 > 0:
-        print("\n⚠️  WARNING: Large timing jumps detected")
+        print("\nWARNING: Large timing jumps detected")
         print("    This may indicate uint16_t wraparounds or time re-synchronization events")
 
 def main():

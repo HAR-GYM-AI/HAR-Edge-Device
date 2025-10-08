@@ -1,0 +1,51 @@
+2025-10-08 17:23:25,647 - INFO - Connecting to MongoDB...
+2025-10-08 17:23:26,359 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 17:23:37,775 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 17:23:37,778 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 17:24:29,577 - INFO - MongoDB connection closed
+2025-10-08 17:24:34,611 - INFO - Connecting to MongoDB...
+2025-10-08 17:24:35,342 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 17:24:54,272 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 17:24:54,560 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 17:24:54,807 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 17:25:13,765 - ERROR - Calibration error for B0:B2:1C:5B:69:2E: Service Discovery has not been performed yet
+2025-10-08 17:25:25,864 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 17:25:26,154 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 17:25:26,199 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 17:25:37,474 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 17:25:37,753 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 17:25:37,854 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 17:27:46,850 - INFO - Connecting to MongoDB...
+2025-10-08 17:27:47,591 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 17:28:03,741 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 17:28:03,745 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 17:28:03,749 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 17:28:07,495 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 17:28:07,498 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 17:28:07,502 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 17:28:32,556 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 17:28:32,601 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 17:28:32,608 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 17:28:47,859 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 17:28:47,863 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 17:28:47,866 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 17:28:48,444 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 17:28:48,448 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 17:28:48,500 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 17:28:57,518 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 17:28:57,692 - WARNING - Device B0:B2:1C:5B:69:2E appears disconnected
+2025-10-08 17:28:57,692 - WARNING - Disconnected devices detected: ['B0:B2:1C:5B:69:2E']
+2025-10-08 17:28:58,000 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 17:29:00,388 - WARNING - Device B0:B2:1C:5B:69:2E already disconnected, skipping stop command
+2025-10-08 17:29:00,588 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 17:29:00,588 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 17:29:00,634 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 17:29:00,634 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 17:29:06,595 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 17:29:06,635 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 17:29:06,636 - INFO - Finalizing session data...
+2025-10-08 17:29:06,636 - INFO - Aggregated 33 windows from 3 devices.
+2025-10-08 17:29:06,636 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 17:29:06,637 - INFO - Session finalized: 33 windows, 5850 samples (all chronologically sorted)
+2025-10-08 17:29:07,290 - INFO - Session saved to MongoDB with ID: 68e612c2b1eb573941a22b52
+2025-10-08 17:29:17,582 - INFO - MongoDB connection closed

@@ -33,7 +33,7 @@ class HeartbeatTester:
     async def scan_for_device(self):
         """Scan for HAR sensor nodes"""
         print("Scanning for HAR sensor nodes...")
-        print("─" * 50)
+        print("-" * 50)
         
         devices = await BleakScanner.discover(timeout=5.0)
         har_devices = [d for d in devices if d.name and d.name.startswith("HAR_")]
@@ -125,9 +125,9 @@ class HeartbeatTester:
     
     def display_heartbeat_response(self, response: dict):
         """Display formatted heartbeat response"""
-        print("\n" + "═" * 50)
+        print("\n" + "=" * 50)
         print("HEARTBEAT RESPONSE")
-        print("═" * 50)
+        print("=" * 50)
         
         # Status indicators
         running_status = "[YES]" if response['is_running'] else "[NO]"
@@ -142,7 +142,7 @@ class HeartbeatTester:
         print("\nRaw Data:")
         print(f"  Response ID:  0x{response['response_id']:02X}")
         
-        print("═" * 50 + "\n")
+        print("=" * 50 + "\n")
     
     async def send_heartbeat(self, client: BleakClient):
         """Send heartbeat request and wait for response"""
@@ -198,9 +198,9 @@ class HeartbeatTester:
     
     async def run(self):
         """Main test routine"""
-        print("\n" + "═" * 50)
+        print("\n" + "=" * 50)
         print("HAR SYSTEM - HEARTBEAT TEST")
-        print("═" * 50 + "\n")
+        print("=" * 50 + "\n")
         
         # Scan for device
         device = await self.scan_for_device()
@@ -208,7 +208,7 @@ class HeartbeatTester:
             return
         
         print(f"\nConnecting to {device.name}...")
-        print("─" * 50)
+        print("-" * 50)
         
         try:
             async with BleakClient(device.address) as client:

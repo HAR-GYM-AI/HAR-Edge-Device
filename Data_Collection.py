@@ -22,6 +22,11 @@ from dataclasses import dataclass
 from typing import Optional, Dict, List, Any
 from bleak import BleakClient, BleakScanner
 import logging
+from pymongo import MongoClient
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(
@@ -33,6 +38,73 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# MongoDB Configuration
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
+MONGODB_DB_NAME = os.getenv('MONGODB_DB_NAME', 'har_system')
+MONGODB_COLLECTION = os.getenv('MONGODB_COLLECTION', 'training_data')
+
+# MongoDB Connection
+mongodb_client = None
+mongodb_db = None
+mongodb_collection = None
+
+def init_mongodb():
+    """Initialize MongoDB connection"""
+    global mongodb_client, mongodb_db, mongodb_collection
+    try:
+        logger.info("Connecting to MongoDB...")
+        mongodb_client = MongoClient(MONGODB_URI)
+        # Test the connection
+        mongodb_client.admin.command('ping')
+        mongodb_db = mongodb_client[MONGODB_DB_NAME]
+        mongodb_collection = mongodb_db[MONGODB_COLLECTION]
+        logger.info(f"Successfully connected to MongoDB: {MONGODB_DB_NAME}.{MONGODB_COLLECTION}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        logger.warning("Continuing without MongoDB - data will only be saved to JSON files")
+        return False
+
+def close_mongodb():
+    """Close MongoDB connection"""
+    global mongodb_client
+    if mongodb_client:
+        try:
+            mongodb_client.close()
+            logger.info("MongoDB connection closed")
+        except Exception as e:
+            logger.error(f"Error closing MongoDB connection: {e}")
+
+def save_session_to_mongodb(session_data: Dict[str, Any]) -> bool:
+    """
+    Save a recording session to MongoDB
+    
+    Args:
+        session_data: Complete session data dictionary
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    global mongodb_collection
+    
+    if mongodb_collection is None:
+        logger.warning("MongoDB not connected - skipping database save")
+        return False
+    
+    try:
+        # Add MongoDB-specific metadata
+        session_data['_created_at'] = datetime.now()
+        session_data['_data_source'] = 'raspberry_pi_ble'
+        
+        # Insert the document
+        result = mongodb_collection.insert_one(session_data)
+        logger.info(f"Session saved to MongoDB with ID: {result.inserted_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error saving session to MongoDB: {e}")
+        return False
 
 
 # BLE BANDWIDTH OPTIMIZATION NOTES:
@@ -128,8 +200,9 @@ class WindowFeatures:
 
 @dataclass
 class QuaternionSample:
-    """Individual quaternion sample"""
-    timestamp: int
+    """Individual quaternion sample with synchronized timestamps"""
+    absolute_timestamp_ms: int  # UTC timestamp from session start (for global ordering)
+    relative_timestamp_ms: int  # Original timestamp from Arduino (for debugging)
     qw: float
     qx: float
     qy: float
@@ -261,6 +334,9 @@ class DataCollectionMenu:
         self.connected_clients: dict[str, BleakClient] = {}  # address -> client
         self.node_statuses: dict[int, NodeStatus] = {}  # node_id -> status
         
+        # Initialize MongoDB connection
+        self.mongodb_enabled = init_mongodb()
+        
         # Window configuration (matching Arduino)
         self.SHORT_WINDOW_SIZE = 150
         self.SHORT_WINDOW_OVERLAP = 0.75
@@ -284,29 +360,39 @@ class DataCollectionMenu:
     def print_node_status(self):
         """Display current node statuses"""
         if self.node_statuses:
-            print("┌─ CONNECTED NODES " + "─" * 50 + "┐")
+            print("+" + "-" * 68 + "+")
+            print("| CONNECTED NODES" + " " * 52 + "|")
+            print("+" + "-" * 68 + "+")
             for i, (node_id, status) in enumerate(self.node_statuses.items()):
                 if i > 0:
-                    print("├" + "─" * 68 + "┤")
+                    print("+" + "-" * 68 + "+")
                 
                 status_color = "\033[92m" if status.is_running else "\033[93m"
                 reset_color = "\033[0m"
                 
                 node_name = NODE_NAMES.get(node_id, "UNKNOWN")
-                print(f"│ {node_name} (ID: {node_id})" + " " * (45 - len(node_name) - len(str(node_id))) + "│")
-                print(f"│   Connected:  {status_color}{'YES' if status.connected else 'NO'}{reset_color:<45}│")
-                print(f"│   Running:    {status_color}{'YES' if status.is_running else 'NO'}{reset_color:<45}│")
-                print(f"│   Calibrated: {'YES' if status.is_calibrated else 'NO':<45}│")
-                print(f"│   Timestamp:  {status.timestamp:<45}│")
+                print(f"| {node_name} (ID: {node_id})" + " " * (45 - len(node_name) - len(str(node_id))) + " |")
+                print(f"|   Connected:  {status_color}{'YES' if status.connected else 'NO'}{reset_color:<45}|")
+                print(f"|   Running:    {status_color}{'YES' if status.is_running else 'NO'}{reset_color:<45}|")
+                print(f"|   Calibrated: {'YES' if status.is_calibrated else 'NO':<45}|")
+                print(f"|   Timestamp:  {status.timestamp:<45}|")
             
-            print("└" + "─" * 68 + "┘")
+            print("+" + "-" * 68 + "+")
             print(f"Total connected: {len(self.node_statuses)}/{len(NODE_NAMES)} nodes")
             print()
         else:
-            print("┌─ NODE STATUS " + "─" * 54 + "┐")
-            print("│ No nodes connected                                                 │")
-            print("└" + "─" * 68 + "┘")
+            print("+" + "-" * 68 + "+")
+            print("| NODE STATUS" + " " * 56 + "|")
+            print("| No nodes connected" + " " * 49 + "|")
+            print("+" + "-" * 68 + "+")
             print()
+        
+        # Display MongoDB connection status
+        mongodb_status = "\033[92mCONNECTED\033[0m" if self.mongodb_enabled else "\033[93mDISCONNECTED\033[0m"
+        print("+" + "-" * 68 + "+")
+        print(f"| DATABASE STATUS: MongoDB {mongodb_status:<38}|")
+        print("+" + "-" * 68 + "+")
+        print()
     
     def print_menu_options(self):
         """Display menu options"""
@@ -319,7 +405,7 @@ class DataCollectionMenu:
         print("  [5] Reset All Sensor Nodes")
         print("  [0] Exit")
         print()
-        print("─" * 70)
+        print("-" * 70)
     
     def display_menu(self):
         """Display complete menu"""
@@ -373,14 +459,14 @@ class DataCollectionMenu:
             
             # Confirm configuration
             print()
-            print("─" * 70)
+            print("-" * 70)
             print("Configuration Summary:")
             print(f"  Exercise: {exercise_type.name.replace('_', ' ').title()}")
             print(f"  Reps: {rep_count}")
             print(f"  Participant: {participant_id}")
             if session_notes:
                 print(f"  Notes: {session_notes}")
-            print("─" * 70)
+            print("-" * 70)
             
             confirm = input("\nProceed with this configuration? [y/N]: ").strip().lower()
             if confirm == 'y':
@@ -412,36 +498,54 @@ class DataCollectionMenu:
         input("Press Enter to continue...")
     
     def parse_orientation_packet(self, data: bytes) -> Optional[RawQuaternionPacket]:
-        """Parse raw quaternion orientation packet from Arduino (20 bytes)"""
+        """
+        Parse compressed quaternion orientation packet from Arduino.
+        UPDATED for 14-byte packet (padded to 20 bytes): 4-byte timestamp and quantized quaternions.
+        """
+        # BLE packets are 20 bytes, but only first 14 bytes contain data (rest is padding)
         if len(data) != 20:
+            logger.warning(f"Invalid packet length received: {len(data)} bytes. Expected 20.")
             return None
         
         try:
-            # Packet structure: seq(1) + nodeId(1) + timestamp(2) + qw(4) + qx(4) + qy(4) + qz(4)
-            sequence_number = data[0]
-            node_id = data[1]
-            timestamp = int.from_bytes(data[2:4], byteorder='little')
-            qw = struct.unpack('<f', data[4:8])[0]
-            qx = struct.unpack('<f', data[8:12])[0]
-            qy = struct.unpack('<f', data[12:16])[0]
-            qz = struct.unpack('<f', data[16:20])[0]
+            # Extract first 14 bytes (data), ignore last 6 bytes (padding)
+            data = data[:14]
             
+            # Packet structure: seq(1) + nodeId(1) + timestamp(4) + qw(2) + qx(2) + qy(2) + qz(2)
+            # <B: unsigned char (1), B: unsigned char (1), I: unsigned int (4), h: short (2)
+            (
+                sequence_number,
+                node_id,
+                timestamp,
+                qw_quant,
+                qx_quant,
+                qy_quant,
+                qz_quant,
+            ) = struct.unpack("<BBIhhhh", data)
+
+            # NEW: De-quantize the int16 values back to floats by dividing by the max value.
+            CONVERSION_FACTOR = 32767.0
+            qw = qw_quant / CONVERSION_FACTOR
+            qx = qx_quant / CONVERSION_FACTOR
+            qy = qy_quant / CONVERSION_FACTOR
+            qz = qz_quant / CONVERSION_FACTOR
+
             # Validate quaternion components
             if any(math.isnan(v) or math.isinf(v) for v in [qw, qx, qy, qz]):
-                logger.warning(f"Invalid quaternion values: qw={qw}, qx={qx}, qy={qy}, qz={qz}")
+                logger.warning(f"Invalid quaternion values after de-quantization.")
                 return None
             
             return RawQuaternionPacket(
                 sequence_number=sequence_number,
                 node_id=node_id,
-                timestamp=timestamp,
+                timestamp=timestamp,  # This is the 4-byte relative timestamp
                 qw=qw,
                 qx=qx,
                 qy=qy,
-                qz=qz
+                qz=qz,
             )
         except (struct.error, ValueError) as e:
-            logger.error(f"Error parsing orientation packet: {e}")
+            logger.error(f"Error parsing compressed orientation packet: {e}")
             return None
     
     def parse_heartbeat_response(self, data: bytes):
@@ -489,9 +593,9 @@ class DataCollectionMenu:
     
     def display_heartbeat_response(self, response: dict):
         """Display formatted heartbeat response"""
-        print("\n" + "═" * 50)
+        print("\n" + "=" * 50)
         print("HEARTBEAT RESPONSE")
-        print("═" * 50)
+        print("=" * 50)
         
         # Status indicators
         running_status = "[YES]" if response['is_running'] else "[NO]"
@@ -506,7 +610,7 @@ class DataCollectionMenu:
         print("\nRaw Data:")
         print(f"  Response ID:  0x{response['response_id']:02X}")
         
-        print("═" * 50 + "\n")
+        print("=" * 50 + "\n")
     
     async def scan_and_connect_all_devices(self):
         """Scan for and connect to all HAR sensor nodes sequentially"""
@@ -705,34 +809,65 @@ class DataCollectionMenu:
         return False
     
     async def finalize_session_data(self, device_buffers: Dict[str, Dict[str, Any]], session_data: Dict[str, Any]):
-        """Finalize and organize session data from device buffers"""
+        """
+        Finalize and organize session data.
+        UPDATED to create a single, time-ordered list of all windows across all devices.
+        ALSO sorts windows chronologically within each device's window list.
+        """
+        logger.info("Finalizing session data...")
+        
+        # Create a single list to hold all windows from all devices
+        all_windows_chronological = []
+        
         total_windows = 0
         total_samples = 0
         total_short_windows = 0
         total_long_windows = 0
         
+        # Aggregate windows from all device buffers
         for address, buffer in device_buffers.items():
-            # All windows are already complete (extracted on the fly)
-            device_windows = buffer['windows']
+            device_windows = buffer.get('windows', [])
+            
+            # CRITICAL: Sort windows for this device chronologically by window start time
+            # This ensures device_windows[address] contains windows in time order
+            device_windows.sort(key=lambda w: w.get('window_start_ms', float('inf')))
             
             # Add device info to each window
             for window_data in device_windows:
                 window_data['device_address'] = address
                 
+                # Count samples and window types
                 total_samples += len(window_data.get('samples', []))
                 if window_data['window_type'] == 'short':
                     total_short_windows += 1
                 else:
                     total_long_windows += 1
+                
+                # Add to master list
+                all_windows_chronological.append(window_data)
             
-            session_data['device_windows'][address] = device_windows
             total_windows += len(device_windows)
+            
+            # Store sorted per-device structure for backward compatibility
+            session_data['device_windows'][address] = device_windows
+        
+        logger.info(f"Aggregated {len(all_windows_chronological)} windows from {len(device_buffers)} devices.")
+        
+        # CRITICAL STEP: Sort the master list by window start timestamp
+        all_windows_chronological.sort(key=lambda w: w.get('window_start_ms', float('inf')))
+        
+        logger.info("All windows sorted chronologically by absolute timestamp.")
+        
+        # Add the sorted list to session data (new unified timeline structure)
+        session_data['sorted_windows'] = all_windows_chronological
         
         # Update session metadata
         session_data['session_metadata']['total_windows'] = total_windows
         session_data['session_metadata']['total_samples'] = total_samples
         session_data['session_metadata']['short_windows'] = total_short_windows
         session_data['session_metadata']['long_windows'] = total_long_windows
+        
+        logger.info(f"Session finalized: {total_windows} windows, {total_samples} samples (all chronologically sorted)")
     
     async def monitor_connections(self, device_buffers: Dict[str, Dict[str, Any]]):
         """Monitor BLE connection health and perform periodic time re-sync during recording"""
@@ -977,7 +1112,7 @@ class DataCollectionMenu:
         await self.disconnect_all_clients()
     
     async def disconnect_all_clients(self):
-        """Disconnect from all connected BLE clients"""
+        """Disconnect from all connected BLE clients and close MongoDB connection"""
         if self.connected_clients:
             print(f"\nDisconnecting from {len(self.connected_clients)} device(s)...")
             for address, client in self.connected_clients.items():
@@ -989,6 +1124,9 @@ class DataCollectionMenu:
             self.connected_clients.clear()
             self.node_statuses.clear()
             print("All connections closed")
+        
+        # Close MongoDB connection
+        close_mongodb()
     
     async def handle_start_recording(self):
         """Handle recording session start"""
@@ -1037,8 +1175,9 @@ class DataCollectionMenu:
         
         print(f"\nRecording to: {session_filename}")
         
-        # Track session start time for statistics
+        # Track session start time for statistics and global timestamp synchronization
         session_start_time = datetime.now()
+        session_start_utc_ms = int(session_start_time.timestamp() * 1000)
         
         # Initialize data collection with per-device buffers
         device_buffers: Dict[str, Dict[str, Any]] = {}  # device_address -> buffer
@@ -1050,6 +1189,8 @@ class DataCollectionMenu:
                 'target_reps': config.rep_count,
                 'session_notes': config.session_notes,
                 'start_time': timestamp,
+                'start_time_utc_ms': session_start_utc_ms,  # Absolute UTC timestamp
+                'start_time_iso': session_start_time.isoformat(),
                 'devices': {}
             },
             'device_windows': {}  # device_address -> list of windows
@@ -1131,6 +1272,7 @@ class DataCollectionMenu:
             for address in device_buffers.keys():
                 device_buffers[address]['sync_timestamp_ms'] = sync_timestamp_ms
                 device_buffers[address]['session_absolute_start_ms'] = session_absolute_start_ms
+                device_buffers[address]['session_start_utc_ms'] = session_start_utc_ms  # For absolute timestamps
             
             # STEP 2: Start data collection on all devices
             print("\n" + "=" * 70)
@@ -1218,10 +1360,21 @@ class DataCollectionMenu:
                 'notes': 'All device timestamps synchronized using relative time (t=0 at session start) with periodic re-sync every 60 seconds. To get absolute time: session_absolute_start_ms + timestamp_ms'
             }
             
+            # Save to JSON file
             with open(session_filename, 'w') as f:
                 json.dump(session_data, f, indent=2)
             
             print(f"\n[SUCCESS] Session complete! Data saved to {session_filename}")
+            
+            # Save to MongoDB
+            if self.mongodb_enabled:
+                print("Saving session to MongoDB...")
+                if save_session_to_mongodb(session_data):
+                    print("[SUCCESS] Session data saved to MongoDB")
+                else:
+                    print("[WARNING] Failed to save session to MongoDB (data still saved to JSON file)")
+            else:
+                print("[INFO] MongoDB not connected - data only saved to JSON file")
             
             # Unsubscribe from notifications
             for address, client in self.connected_clients.items():
@@ -1286,12 +1439,15 @@ class DataCollectionMenu:
 
     
     def handle_orientation_data(self, address: str, data: bytes, device_buffers: Dict[str, Dict[str, Any]]):
-        """Handle incoming raw quaternion data from BLE notifications"""
+        """
+        Handle incoming raw quaternion data from BLE notifications.
+        UPDATED to calculate absolute timestamps from session start.
+        """
         try:
             # Update packet stats
             device_buffers[address]['stats']['total_packets'] += 1
             
-            # Parse orientation packet
+            # Parse orientation packet (14-byte with 4-byte timestamp)
             packet = self.parse_orientation_packet(data)
             if not packet:
                 logger.warning(f"Failed to parse orientation packet from {address}")
@@ -1299,82 +1455,27 @@ class DataCollectionMenu:
             
             device_buffers[address]['stats']['total_samples'] += 1
             
-            # Calculate synchronized timestamp in milliseconds
-            # packet.timestamp is in 10ms ticks from device start (wraps at 65536)
-            # We need to calculate actual timestamp based on sync reference
             buffer = device_buffers[address]
             
-            # === ROBUST TIMESTAMP HANDLING ===
+            # === SIMPLIFIED TIMESTAMP HANDLING WITH 4-BYTE TIMESTAMPS ===
+            # With 4-byte timestamps (milliseconds), we get ~49 days before wraparound
+            # No need for complex wraparound detection in typical recording sessions
             
             # Stage 1: Wait for initial sync to complete
-            if buffer['sync_timestamp_ms'] is None:
+            if buffer.get('session_start_utc_ms') is None:
                 logger.debug(f"Skipping packet from {address} - waiting for time sync")
                 return
             
-            # Stage 2: Initialize reference on first packet after sync
-            if buffer.get('first_packet_timestamp') is None:
-                buffer['first_packet_timestamp'] = packet.timestamp
-                buffer['last_sync_timestamp_ms'] = buffer['sync_timestamp_ms']
-                buffer['last_packet_timestamp'] = packet.timestamp
-                buffer['wraparound_count'] = 0  # Track number of wraparounds
-                buffer['samples_received'] = 0  # Track total samples for validation
-                logger.info(f"First packet from {address}: timestamp={packet.timestamp} ticks")
+            # Stage 2: Calculate absolute timestamp
+            # packet.timestamp is relative milliseconds from Arduino's sessionStartTime
+            # absolute_timestamp = session_start_utc_ms + relative_timestamp
+            session_start_utc_ms = buffer['session_start_utc_ms']
+            absolute_timestamp_ms = session_start_utc_ms + packet.timestamp
             
-            # Stage 3: Detect and handle timestamp issues
-            last_timestamp = buffer.get('last_packet_timestamp', packet.timestamp)
-            wraparound_count = buffer.get('wraparound_count', 0)
-            samples_received = buffer.get('samples_received', 0)
-            samples_received += 1
-            buffer['samples_received'] = samples_received
-            
-            # 3a. Detect wraparound (timestamp went backwards significantly)
-            # Must be a large backward jump (>60s) AND not in the first 200 samples
-            # This prevents false wraparound detection from startup timing issues
-            if packet.timestamp < last_timestamp - 6000 and samples_received > 200:
-                wraparound_count += 1
-                buffer['wraparound_count'] = wraparound_count
-                logger.info(f"Wraparound detected on {address}: {last_timestamp} → {packet.timestamp} (count: {wraparound_count})")
-            
-            # 3b. Detect backward jump (out-of-order packet, NOT wraparound)
-            elif packet.timestamp < last_timestamp:
-                logger.debug(f"Out-of-order packet on {address}: {last_timestamp} → {packet.timestamp} (samples: {samples_received})")
-                # Don't increment wraparound_count - this is just BLE reordering
-            
-            # 3c. Detect re-sync (timestamp reset to near-zero after being far ahead)
-            # This should NOT happen during normal operation anymore
-            elif packet.timestamp < 100 and last_timestamp > 10000 and samples_received > 1000:
-                logger.warning(f"Unexpected re-sync detected on {address}: {last_timestamp} → {packet.timestamp}")
-                # This might indicate a device restart - log but continue
-                # Don't reset counters to preserve data continuity
-            
-            # Stage 4: Calculate absolute timestamp with wraparound handling
-            first_ts = buffer['first_packet_timestamp']
-            
-            # Add wraparound compensation (65536 ticks per wraparound)
-            compensated_timestamp = packet.timestamp + (wraparound_count * 65536)
-            compensated_first = first_ts  # First timestamp is always before any wraparound
-            
-            # Calculate elapsed ticks from first packet
-            elapsed_ticks = compensated_timestamp - compensated_first
-            
-            # Handle case where current packet is BEFORE first packet (out-of-order)
-            if elapsed_ticks < 0:
-                logger.warning(f"Packet timestamp {packet.timestamp} is before first packet {first_ts} on {address}")
-                elapsed_ticks = 0  # Clamp to 0
-            
-            # Convert to milliseconds (each tick = 10ms)
-            elapsed_ms = elapsed_ticks * 10
-            
-            # Calculate absolute timestamp from session start
-            sync_base = buffer['last_sync_timestamp_ms']
-            synced_timestamp_ms = sync_base + elapsed_ms
-            
-            # Stage 5: Store packet timestamp for next comparison
-            buffer['last_packet_timestamp'] = packet.timestamp
-            
-            # Convert to QuaternionSample with synchronized timestamp
+            # Create QuaternionSample with both absolute and relative timestamps
             sample = QuaternionSample(
-                timestamp=synced_timestamp_ms,  # Now in absolute milliseconds
+                absolute_timestamp_ms=absolute_timestamp_ms,  # Global UTC timestamp
+                relative_timestamp_ms=packet.timestamp,       # Arduino's relative timestamp (for debugging)
                 qw=packet.qw,
                 qx=packet.qx,
                 qy=packet.qy,
@@ -1403,9 +1504,9 @@ class DataCollectionMenu:
             if (buffer['samples_since_last_short'] >= self.SHORT_WINDOW_STEP and
                 len(buffer['short_window_buffer']) >= self.SHORT_WINDOW_SIZE):
                 
-                # CRITICAL: Sort window samples by timestamp to fix zigzag pattern
+                # CRITICAL: Sort window samples by absolute timestamp to ensure chronological order
                 # BLE packet delivery is not guaranteed to be in-order
-                sorted_window_buffer = sorted(buffer['short_window_buffer'], key=lambda s: s.timestamp)
+                sorted_window_buffer = sorted(buffer['short_window_buffer'], key=lambda s: s.absolute_timestamp_ms)
                 
                 # Extract features from short window (using sorted samples)
                 features = extract_window_features(
@@ -1415,19 +1516,19 @@ class DataCollectionMenu:
                     window_id=buffer['short_window_id']
                 )
                 
-                # Calculate window timing information (using sorted samples)
-                window_start_timestamp_ms = sorted_window_buffer[0].timestamp
-                window_end_timestamp_ms = sorted_window_buffer[-1].timestamp
+                # Calculate window timing information (using sorted samples with absolute timestamps)
+                window_start_timestamp_ms = sorted_window_buffer[0].absolute_timestamp_ms
+                window_end_timestamp_ms = sorted_window_buffer[-1].absolute_timestamp_ms
                 window_duration_ms = window_end_timestamp_ms - window_start_timestamp_ms
                 
-                # Store window with features and samples (sorted by timestamp)
+                # Store window with features and samples (sorted by absolute timestamp)
                 window_data = {
                     'window_type': 'short',
                     'window_id': buffer['short_window_id'],
                     'node_id': packet.node_id,
                     'timestamp': datetime.now().isoformat(),
-                    'window_start_ms': window_start_timestamp_ms,  # Synchronized start time
-                    'window_end_ms': window_end_timestamp_ms,      # Synchronized end time
+                    'window_start_ms': window_start_timestamp_ms,  # Absolute UTC start time
+                    'window_end_ms': window_end_timestamp_ms,      # Absolute UTC end time
                     'window_duration_ms': window_duration_ms,      # Actual duration
                     'features': {
                         'qw_mean': features.qw_mean,
@@ -1442,8 +1543,9 @@ class DataCollectionMenu:
                         'dominant_freq': features.dominant_freq,
                         'total_samples': features.total_samples
                     },
-                    'samples': [{'timestamp_ms': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
-                                'qy': s.qy, 'qz': s.qz} 
+                    'samples': [{'absolute_timestamp_ms': s.absolute_timestamp_ms, 
+                                'relative_timestamp_ms': s.relative_timestamp_ms,
+                                'qw': s.qw, 'qx': s.qx, 'qy': s.qy, 'qz': s.qz} 
                                for s in sorted_window_buffer]
                 }
                 
@@ -1460,9 +1562,9 @@ class DataCollectionMenu:
             if (buffer['samples_since_last_long'] >= self.LONG_WINDOW_STEP and
                 len(buffer['long_window_buffer']) >= self.LONG_WINDOW_SIZE):
                 
-                # CRITICAL: Sort window samples by timestamp to fix zigzag pattern
+                # CRITICAL: Sort window samples by absolute timestamp to ensure chronological order
                 # BLE packet delivery is not guaranteed to be in-order
-                sorted_window_buffer = sorted(buffer['long_window_buffer'], key=lambda s: s.timestamp)
+                sorted_window_buffer = sorted(buffer['long_window_buffer'], key=lambda s: s.absolute_timestamp_ms)
                 
                 # Extract features from long window (using sorted samples)
                 features = extract_window_features(
@@ -1472,19 +1574,19 @@ class DataCollectionMenu:
                     window_id=buffer['long_window_id']
                 )
                 
-                # Calculate window timing information (using sorted samples)
-                window_start_timestamp_ms = sorted_window_buffer[0].timestamp
-                window_end_timestamp_ms = sorted_window_buffer[-1].timestamp
+                # Calculate window timing information (using sorted samples with absolute timestamps)
+                window_start_timestamp_ms = sorted_window_buffer[0].absolute_timestamp_ms
+                window_end_timestamp_ms = sorted_window_buffer[-1].absolute_timestamp_ms
                 window_duration_ms = window_end_timestamp_ms - window_start_timestamp_ms
                 
-                # Store window with features and samples (sorted by timestamp)
+                # Store window with features and samples (sorted by absolute timestamp)
                 window_data = {
                     'window_type': 'long',
                     'window_id': buffer['long_window_id'],
                     'node_id': packet.node_id,
                     'timestamp': datetime.now().isoformat(),
-                    'window_start_ms': window_start_timestamp_ms,  # Synchronized start time
-                    'window_end_ms': window_end_timestamp_ms,      # Synchronized end time
+                    'window_start_ms': window_start_timestamp_ms,  # Absolute UTC start time
+                    'window_end_ms': window_end_timestamp_ms,      # Absolute UTC end time
                     'window_duration_ms': window_duration_ms,      # Actual duration
                     'features': {
                         'qw_mean': features.qw_mean,
@@ -1499,8 +1601,9 @@ class DataCollectionMenu:
                         'dominant_freq': features.dominant_freq,
                         'total_samples': features.total_samples
                     },
-                    'samples': [{'timestamp_ms': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
-                                'qy': s.qy, 'qz': s.qz} 
+                    'samples': [{'absolute_timestamp_ms': s.absolute_timestamp_ms,
+                                'relative_timestamp_ms': s.relative_timestamp_ms,
+                                'qw': s.qw, 'qx': s.qx, 'qy': s.qy, 'qz': s.qz} 
                                for s in sorted_window_buffer]
                 }
                 
@@ -1531,20 +1634,20 @@ class DataCollectionMenu:
         for address in self.connected_clients.keys():
             node_id = self.extract_node_id_from_name_by_address(address)
             node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
-            print(f"  • {node_name} ({address})")
+            print(f"  - {node_name} ({address})")
         
-        print("\n" + "─" * 70)
+        print("\n" + "-" * 70)
         print("CALIBRATION PROCEDURE")
-        print("─" * 70)
+        print("-" * 70)
         print("""
 This calibration establishes a reference orientation for all sensors.
 All sensors must be oriented in the SAME direction during calibration.
 SENSOR PLACEMENT & ORIENTATION:
   
-  • WRIST sensor:  On dominant wrist, facing FORWARD (screen up)
-  • BICEP sensor:  On dominant upper arm, facing FORWARD
-  • CHEST sensor:  Center of chest, facing FORWARD
-  • THIGH sensor:  On dominant thigh, facing FORWARD
+  * WRIST sensor:  On dominant wrist, facing FORWARD (screen up)
+  * BICEP sensor:  On dominant upper arm, facing FORWARD
+  * CHEST sensor:  Center of chest, facing FORWARD
+  * THIGH sensor:  On dominant thigh, facing FORWARD
 
 IMPORTANT:
   * All sensors must face the SAME direction (forward)
@@ -1554,7 +1657,7 @@ IMPORTANT:
   * Look straight ahead
         """)
         
-        print("─" * 70)
+        print("-" * 70)
         
         # Get confirmation
         ready = input("\nAre you in the T-pose position and ready? [y/N]: ").strip().lower()

@@ -5,5 +5,7 @@
 *.env
 .env
 
+.log
+
 # Ignore collected data folder
 collected_data/
