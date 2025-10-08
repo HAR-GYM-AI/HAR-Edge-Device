@@ -6,6 +6,6 @@
 .env
 
 .log
-
+__pycache__
 # Ignore collected data folder
 collected_data/

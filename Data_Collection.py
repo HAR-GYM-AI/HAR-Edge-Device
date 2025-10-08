@@ -16,6 +16,7 @@ import json
 import struct
 import os
 import math
+import time
 from datetime import datetime
 from enum import IntEnum
 from dataclasses import dataclass
@@ -24,6 +25,8 @@ from bleak import BleakClient, BleakScanner
 import logging
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from collections import deque
+import threading
 
 # Load environment variables from .env file
 load_dotenv()
@@ -344,6 +347,15 @@ class DataCollectionMenu:
         self.LONG_WINDOW_SIZE = 300
         self.LONG_WINDOW_OVERLAP = 0.5
         self.LONG_WINDOW_STEP = 150  # 300 * (1 - 0.5)
+        
+        # BLE DATA BUFFERING CONFIGURATION
+        # Large buffers to handle high-throughput multi-device BLE data
+        # Each device can buffer up to 10000 packets (~100 seconds at 100Hz)
+        self.PACKET_QUEUE_MAX_SIZE = 10000  # Per-device queue size
+        self.packet_queues: Dict[str, asyncio.Queue] = {}  # address -> queue
+        self.processing_tasks: List[asyncio.Task] = []  # Background processing tasks
+        self.packets_dropped: Dict[str, int] = {}  # Track dropped packets per device
+        self.packets_received: Dict[str, int] = {}  # Track received packets per device
         
     def clear_screen(self):
         """Clear terminal screen"""
@@ -703,25 +715,122 @@ class DataCollectionMenu:
             raise e
     
     async def start_device_notifications(self, address: str, client: BleakClient, device_buffers: Dict[str, Dict[str, Any]]):
-        """Start notification handlers for a single device"""
+        """
+        Start notification handlers for a single device with buffered async queue processing.
+        This prevents data loss by using a large buffer to handle BLE burst traffic.
+        """
         try:
-            # Create notification handler for this device
+            # Create notification handler for this device that puts data into queue
             def notification_handler(sender, data):
-                self.handle_orientation_data(address, data, device_buffers)
+                # Fast notification handler - just queue the raw data
+                # This minimizes processing time in the BLE callback
+                try:
+                    # Record packet timing
+                    current_time = time.time()
+                    if self.first_packet_time.get(address) is None:
+                        self.first_packet_time[address] = current_time
+                        node_id_inner = self.extract_node_id_from_name_by_address(address)
+                        node_name_inner = NODE_NAMES.get(node_id_inner, "UNKNOWN") if node_id_inner is not None else "UNKNOWN"
+                        logger.info(f"First packet received from {node_name_inner} at {current_time:.3f}s")
+                    self.last_packet_time[address] = current_time
+                    
+                    # Try to put data in queue without blocking
+                    if not self.packet_queues[address].full():
+                        self.packet_queues[address].put_nowait((address, bytes(data)))
+                        self.packets_received[address] = self.packets_received.get(address, 0) + 1
+                    else:
+                        # Queue is full - log dropped packet
+                        self.packets_dropped[address] = self.packets_dropped.get(address, 0) + 1
+                        logger.error(f"BUFFER OVERFLOW: Dropped packet from {address} (queue full)")
+                except Exception as e:
+                    logger.error(f"Error queuing packet from {address}: {e}")
             
             # Subscribe to orientation characteristic only
             await client.start_notify(ORIENTATION_CHAR_UUID, notification_handler)
-            print(f"Started notifications for {address}")
+            
+            node_id = self.extract_node_id_from_name_by_address(address)
+            node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+            logger.info(f"Started notifications for {node_name} ({address})")
             
             # Keep the handler running (this will run indefinitely until cancelled)
             while True:
                 await asyncio.sleep(1.0)
+                
+                # Log buffer status every 10 seconds
+                if int(time.time()) % 10 == 0:
+                    queue_size = self.packet_queues[address].qsize()
+                    if queue_size > self.PACKET_QUEUE_MAX_SIZE * 0.7:
+                        logger.warning(f"{node_name}: Queue at {queue_size}/{self.PACKET_QUEUE_MAX_SIZE} (70%+ full)")
                 
         except asyncio.CancelledError:
             # Expected when stopping collection
             pass
         except Exception as e:
             print(f"Error in notification handler for {address}: {e}")
+            logger.error(f"Error in notification handler for {address}: {e}")
+    
+    async def process_packet_queue(self, address: str, device_buffers: Dict[str, Dict[str, Any]]):
+        """
+        Asynchronously process queued BLE packets for a single device.
+        This runs in parallel with BLE notifications to prevent data loss.
+        """
+        node_id = self.extract_node_id_from_name_by_address(address)
+        node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+        
+        processed_count = 0
+        logger.info(f"Started packet processor for {node_name} ({address})")
+        
+        try:
+            while True:
+                try:
+                    # Get packet from queue (wait up to 0.1 seconds)
+                    addr, data = await asyncio.wait_for(
+                        self.packet_queues[address].get(), 
+                        timeout=0.1
+                    )
+                    
+                    # Process the packet
+                    self.handle_orientation_data(addr, data, device_buffers)
+                    processed_count += 1
+                    
+                    # Mark task as done
+                    self.packet_queues[address].task_done()
+                    
+                    # Log progress every 1000 packets
+                    if processed_count % 1000 == 0:
+                        queue_size = self.packet_queues[address].qsize()
+                        logger.info(f"{node_name}: Processed {processed_count} packets, {queue_size} queued")
+                    
+                except asyncio.TimeoutError:
+                    # No packet available - this is normal, continue waiting
+                    continue
+                    
+                except Exception as e:
+                    logger.error(f"Error processing packet from {address}: {e}")
+                    continue
+                    
+        except asyncio.CancelledError:
+            # Expected when stopping collection
+            queue_size = self.packet_queues[address].qsize()
+            logger.info(f"Stopping packet processor for {node_name}: {processed_count} processed, {queue_size} remaining")
+            
+            # Process remaining packets in queue before exiting
+            logger.info(f"Draining remaining {queue_size} packets from {node_name}...")
+            drained = 0
+            while not self.packet_queues[address].empty():
+                try:
+                    addr, data = self.packet_queues[address].get_nowait()
+                    self.handle_orientation_data(addr, data, device_buffers)
+                    self.packet_queues[address].task_done()
+                    drained += 1
+                except Exception as e:
+                    logger.error(f"Error draining packet: {e}")
+                    break
+            
+            logger.info(f"Drained {drained} packets from {node_name}")
+            
+        except Exception as e:
+            logger.error(f"Fatal error in packet processor for {address}: {e}")
     
     async def send_time_sync_command(self, client: BleakClient, address: str, sync_timestamp_ms: int, max_retries: int = 3):
         """Send time synchronization command to a device"""
@@ -869,8 +978,12 @@ class DataCollectionMenu:
         
         logger.info(f"Session finalized: {total_windows} windows, {total_samples} samples (all chronologically sorted)")
     
-    async def monitor_connections(self, device_buffers: Dict[str, Dict[str, Any]]):
-        """Monitor BLE connection health and perform periodic time re-sync during recording"""
+    async def monitor_connections(self, device_buffers: Dict[str, Dict[str, Any]], 
+                                 required_device_count: int):
+        """
+        Monitor BLE connection health and perform periodic time re-sync during recording.
+        CRITICAL: Raises ConnectionError if any device disconnects, stopping the entire session.
+        """
         try:
             sync_counter = 0
             while True:
@@ -882,17 +995,26 @@ class DataCollectionMenu:
                     try:
                         # Simple connection check
                         if not client.is_connected:
-                            logger.warning(f"Device {address} appears disconnected")
+                            logger.error(f"Device {address} has disconnected!")
                             disconnected_devices.append(address)
                     except Exception as e:
-                        logger.warning(f"Connection check failed for {address}: {e}")
+                        logger.error(f"Connection check failed for {address}: {e}")
                         disconnected_devices.append(address)
                 
-                # Log connection status
+                # CRITICAL: If ANY device disconnects, abort the entire session
                 if disconnected_devices:
-                    logger.warning(f"Disconnected devices detected: {disconnected_devices}")
+                    node_names = []
                     for address in disconnected_devices:
+                        node_id = self.extract_node_id_from_name_by_address(address)
+                        node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+                        node_names.append(f"{node_name} ({address})")
                         device_buffers[address]['stats']['connection_dropped'] = True
+                    
+                    error_msg = (f"CONNECTION LOST: {len(disconnected_devices)} device(s) disconnected: "
+                               f"{', '.join(node_names)}. Session requires {required_device_count} "
+                               f"devices to remain connected. Aborting session.")
+                    logger.error(error_msg)
+                    raise ConnectionError(error_msg)
                 
                 # Periodic time re-sync every 60 seconds to handle clock drift
                 if sync_counter >= 6:  # 6 * 10s = 60 seconds
@@ -1125,6 +1247,12 @@ class DataCollectionMenu:
             self.node_statuses.clear()
             print("All connections closed")
         
+        # Clear packet queues and processing tasks
+        self.packet_queues.clear()
+        self.processing_tasks.clear()
+        self.packets_dropped.clear()
+        self.packets_received.clear()
+        
         # Close MongoDB connection
         close_mongodb()
     
@@ -1221,18 +1349,50 @@ class DataCollectionMenu:
         # Task list for cleanup
         notification_tasks = []
         
+        # Initialize packet queues and processing tasks for buffered data handling
+        print("Initializing high-capacity packet buffers...")
+        
+        # Track first packet time for each device
+        self.first_packet_time: Dict[str, float] = {}
+        self.last_packet_time: Dict[str, float] = {}
+        
+        for address in self.connected_clients.keys():
+            # Create large async queue for each device (10000 packets = ~100 seconds at 100Hz)
+            self.packet_queues[address] = asyncio.Queue(maxsize=self.PACKET_QUEUE_MAX_SIZE)
+            self.packets_dropped[address] = 0
+            self.packets_received[address] = 0
+            self.first_packet_time[address] = None
+            self.last_packet_time[address] = None
+            
+            node_id = self.extract_node_id_from_name_by_address(address)
+            node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+            logger.info(f"Initialized {self.PACKET_QUEUE_MAX_SIZE}-packet buffer for {node_name}")
+        
         try:
             # Start concurrent notification handlers and connection monitoring
             print("Starting concurrent data collection...")
             
+            # Start packet processing tasks (one per device)
+            for address, client in self.connected_clients.items():
+                # Start async packet processor for this device
+                processing_task = asyncio.create_task(
+                    self.process_packet_queue(address, device_buffers)
+                )
+                self.processing_tasks.append(processing_task)
+                notification_tasks.append(processing_task)
+            
+            # Start BLE notification handlers
             for address, client in self.connected_clients.items():
                 task = asyncio.create_task(
                     self.start_device_notifications(address, client, device_buffers)
                 )
                 notification_tasks.append(task)
             
-            # Add connection monitoring task
-            monitor_task = asyncio.create_task(self.monitor_connections(device_buffers))
+            # Add connection monitoring task (must maintain all devices)
+            required_device_count = len(self.connected_clients)
+            monitor_task = asyncio.create_task(
+                self.monitor_connections(device_buffers, required_device_count)
+            )
             notification_tasks.append(monitor_task)
             
             # STEP 1: Synchronize timestamps across all devices
@@ -1263,7 +1423,13 @@ class DataCollectionMenu:
                 print("[FAILED] Time synchronization failed on all devices")
                 return
             
-            print(f"[OK] Time synchronized on {successful_syncs}/{len(self.connected_clients)} devices")
+            if successful_syncs < required_device_count:
+                logger.error(f"Time sync failed on {required_device_count - successful_syncs} device(s) - aborting session")
+                print(f"[FAILED] Time synchronization failed on {required_device_count - successful_syncs} device(s)")
+                print(f"All {required_device_count} devices must be synchronized to start recording")
+                return
+            
+            print(f"[OK] Time synchronized on all {successful_syncs} devices")
             
             # Small delay to ensure sync is processed
             await asyncio.sleep(0.5)
@@ -1279,6 +1445,7 @@ class DataCollectionMenu:
             print("STARTING DATA COLLECTION")
             print("=" * 70)
             
+            # Send start commands to all devices concurrently
             start_tasks = []
             for address, client in self.connected_clients.items():
                 task = self.send_start_command(client, address)
@@ -1286,29 +1453,95 @@ class DataCollectionMenu:
             
             start_results = await asyncio.gather(*start_tasks, return_exceptions=True)
             successful_starts = sum(1 for result in start_results if result is True)
-            print(f"[OK] Started collection on {successful_starts}/{len(self.connected_clients)} devices")
             
             if successful_starts == 0:
                 logger.error("Failed to start collection on any device")
+                print("[FAILED] Failed to start collection on any device")
                 return
             
-            # Collect data until user presses Enter or Ctrl+C
+            if successful_starts < required_device_count:
+                logger.error(f"Failed to start collection on {required_device_count - successful_starts} device(s) - aborting session")
+                print(f"[FAILED] Failed to start collection on {required_device_count - successful_starts} device(s)")
+                print(f"All {required_device_count} devices must start successfully to begin recording")
+                return
+            
+            print(f"[OK] Started collection on all {successful_starts} devices")
+            
+            # Add stabilization delay to ensure all devices have started and are synchronized
+            print("[INFO] Waiting 2 seconds for all devices to stabilize...")
+            await asyncio.sleep(2.0)
+            
+            print(f"[CRITICAL] Recording will immediately STOP if ANY device loses connection")
+            
+            # Collect data until user presses Enter, connection is lost, or Ctrl+C
             print("\nCollecting data... (Press Enter to stop)")
+            print(f"[MONITORING] {required_device_count} device(s) must remain connected")
             
             # Run input monitoring in executor (run_in_executor returns a Future, not a coroutine)
             input_task = asyncio.get_event_loop().run_in_executor(None, input, "")
             
-            # Wait for user input
-            await input_task
+            # Wait for either user input OR connection loss (via monitor_task exception)
+            # Create a list of tasks to wait for
+            wait_tasks = [input_task, monitor_task]
             
-            print("\nRecording stopped by user")
+            try:
+                # Wait for the first task to complete (either user input or connection monitor)
+                done, pending = await asyncio.wait(
+                    wait_tasks, 
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                
+                # Check if monitor task completed (meaning connection was lost)
+                if monitor_task in done:
+                    # Get the exception from the monitor task
+                    try:
+                        await monitor_task
+                    except ConnectionError as conn_err:
+                        # Connection lost - stop recording immediately
+                        print("\n" + "=" * 70)
+                        print("!!! CONNECTION LOST - STOPPING RECORDING !!!")
+                        print("=" * 70)
+                        print(f"\n{conn_err}\n")
+                        logger.error(f"Recording stopped due to connection loss: {conn_err}")
+                        
+                        # Mark session as failed due to connection loss
+                        session_data['session_metadata']['status'] = 'FAILED'
+                        session_data['session_metadata']['failure_reason'] = 'device_disconnection'
+                        session_data['session_metadata']['error_message'] = str(conn_err)
+                    except Exception as e:
+                        print(f"\n!!! Unexpected error in connection monitoring: {e}")
+                        raise
+                else:
+                    # User pressed Enter - normal stop
+                    print("\nRecording stopped by user")
+                    session_data['session_metadata']['status'] = 'SUCCESS'
+                    session_data['session_metadata']['stopped_by'] = 'user'
+                
+                # Cancel any pending tasks
+                for task in pending:
+                    task.cancel()
+                    
+            except Exception as e:
+                print(f"\nError during data collection: {e}")
+                session_data['session_metadata']['status'] = 'FAILED'
+                session_data['session_metadata']['error_message'] = str(e)
+                raise
             
         except asyncio.CancelledError:
             print("\nRecording cancelled")
+            session_data['session_metadata']['status'] = 'CANCELLED'
         except KeyboardInterrupt:
             print("\nRecording interrupted")
+            session_data['session_metadata']['status'] = 'INTERRUPTED'
+        except ConnectionError as conn_err:
+            # Already handled above, but catch here in case it propagates
+            print(f"\nRecording failed due to connection loss")
+            session_data['session_metadata']['status'] = 'FAILED'
+            session_data['session_metadata']['failure_reason'] = 'device_disconnection'
         except Exception as e:
             print(f"Error during recording: {e}")
+            session_data['session_metadata']['status'] = 'FAILED'
+            session_data['session_metadata']['error_message'] = str(e)
             import traceback
             traceback.print_exc()
         finally:
@@ -1348,6 +1581,9 @@ class DataCollectionMenu:
             # Display collection statistics
             self.display_collection_statistics_multi_device(device_buffers, session_duration)
             
+            # Display buffer statistics (pass session_duration for rate calculation)
+            self.display_buffer_statistics(session_duration)
+            
             # Save collected data
             session_data['session_metadata']['end_time'] = session_end_time.strftime("%Y%m%d_%H%M%S")
             session_data['session_metadata']['duration_seconds'] = session_duration
@@ -1360,19 +1596,81 @@ class DataCollectionMenu:
                 'notes': 'All device timestamps synchronized using relative time (t=0 at session start) with periodic re-sync every 60 seconds. To get absolute time: session_absolute_start_ms + timestamp_ms'
             }
             
+            # Add buffer statistics to session metadata
+            session_data['session_metadata']['buffer_info'] = {
+                'queue_max_size': self.PACKET_QUEUE_MAX_SIZE,
+                'buffering_enabled': True,
+                'per_device_stats': {}
+            }
+            
+            for address in self.connected_clients.keys():
+                node_id = self.extract_node_id_from_name_by_address(address)
+                node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+                received = self.packets_received.get(address, 0)
+                dropped = self.packets_dropped.get(address, 0)
+                drop_rate = (dropped / received * 100) if received > 0 else 0.0
+                
+                session_data['session_metadata']['buffer_info']['per_device_stats'][address] = {
+                    'node_name': node_name,
+                    'packets_received': received,
+                    'packets_dropped': dropped,
+                    'drop_rate_percent': round(drop_rate, 2),
+                    'data_loss': dropped > 0
+                }
+            
+            # Display session status
+            session_status = session_data['session_metadata'].get('status', 'UNKNOWN')
+            print("\n" + "=" * 70)
+            if session_status == 'SUCCESS':
+                print("SESSION COMPLETED SUCCESSFULLY")
+                print("=" * 70)
+            elif session_status == 'FAILED':
+                print("SESSION FAILED")
+                print("=" * 70)
+                failure_reason = session_data['session_metadata'].get('failure_reason', 'unknown')
+                error_msg = session_data['session_metadata'].get('error_message', 'No details available')
+                print(f"\nReason: {failure_reason}")
+                print(f"Details: {error_msg}")
+            else:
+                print(f"SESSION STATUS: {session_status}")
+                print("=" * 70)
+            
+            # Check for connection issues
+            connection_issues = []
+            for address, buffer in device_buffers.items():
+                if buffer['stats'].get('connection_dropped', False):
+                    node_id = self.extract_node_id_from_name_by_address(address)
+                    node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+                    connection_issues.append(f"{node_name} ({address})")
+            
+            if connection_issues:
+                print(f"\n[WARNING] Devices that lost connection: {', '.join(connection_issues)}")
+            
             # Save to JSON file
             with open(session_filename, 'w') as f:
                 json.dump(session_data, f, indent=2)
             
-            print(f"\n[SUCCESS] Session complete! Data saved to {session_filename}")
+            if session_status == 'SUCCESS':
+                print(f"\n[SUCCESS] Session complete! Data saved to {session_filename}")
+            else:
+                print(f"\n[INFO] Partial session data saved to {session_filename}")
             
-            # Save to MongoDB
+            # Save to MongoDB (only save successful sessions)
             if self.mongodb_enabled:
-                print("Saving session to MongoDB...")
-                if save_session_to_mongodb(session_data):
-                    print("[SUCCESS] Session data saved to MongoDB")
+                # Only upload successful sessions to MongoDB
+                if session_status == 'SUCCESS':
+                    print("Saving session to MongoDB...")
+                    if save_session_to_mongodb(session_data):
+                        print("[SUCCESS] Session data saved to MongoDB")
+                    else:
+                        print("[WARNING] Failed to save session to MongoDB (data still saved to JSON file)")
                 else:
-                    print("[WARNING] Failed to save session to MongoDB (data still saved to JSON file)")
+                    print(f"[INFO] Skipping MongoDB upload - session status is '{session_status}'")
+                    print("[INFO] Failed/incomplete sessions are only saved locally as JSON files")
+                    if session_status == 'FAILED':
+                        failure_reason = session_data['session_metadata'].get('failure_reason', 'unknown')
+                        if failure_reason == 'device_disconnection':
+                            print("[INFO] Session failed due to device disconnection - data incomplete and not uploaded")
             else:
                 print("[INFO] MongoDB not connected - data only saved to JSON file")
             
@@ -1383,6 +1681,122 @@ class DataCollectionMenu:
                     print(f"[OK] Unsubscribed from {address}")
                 except Exception as e:
                     print(f"[ERROR] Error unsubscribing from {address}: {e}")
+    
+    def display_buffer_statistics(self, session_duration: float = None):
+        """Display BLE buffer and packet statistics"""
+        print(f"\n{'='*70}")
+        print("BLE BUFFER STATISTICS")
+        print(f"{'='*70}")
+        
+        total_received = 0
+        total_dropped = 0
+        device_stats = []
+        
+        for address in self.connected_clients.keys():
+            node_id = self.extract_node_id_from_name_by_address(address)
+            node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+            
+            received = self.packets_received.get(address, 0)
+            dropped = self.packets_dropped.get(address, 0)
+            
+            total_received += received
+            total_dropped += dropped
+            
+            drop_rate = (dropped / received * 100) if received > 0 else 0.0
+            packet_rate = (received / session_duration) if session_duration and session_duration > 0 else 0.0
+            
+            # Calculate device-specific timing
+            first_packet = self.first_packet_time.get(address)
+            last_packet = self.last_packet_time.get(address)
+            device_duration = (last_packet - first_packet) if (first_packet and last_packet) else None
+            
+            device_stats.append({
+                'name': node_name,
+                'address': address,
+                'received': received,
+                'dropped': dropped,
+                'rate': packet_rate,
+                'first_packet_time': first_packet,
+                'last_packet_time': last_packet,
+                'duration': device_duration
+            })
+            
+            print(f"Device: {node_name} ({address})")
+            print(f"  Packets received: {received}")
+            if session_duration:
+                print(f"  Packet rate: {packet_rate:.1f} Hz (expected: ~100 Hz)")
+            if device_duration:
+                print(f"  Active duration: {device_duration:.2f}s")
+            print(f"  Packets dropped:  {dropped} ({drop_rate:.2f}%)")
+            
+            if dropped > 0:
+                print(f"  [WARNING] Data loss detected on {node_name}!")
+            else:
+                print(f"  [OK] No data loss")
+            print()
+        
+        print(f"{'='*70}")
+        print("OVERALL BUFFER STATISTICS")
+        print(f"{'='*70}")
+        print(f"Total packets received: {total_received}")
+        print(f"Total packets dropped:  {total_dropped}")
+        
+        # Analyze packet count variance
+        if len(device_stats) > 1:
+            received_counts = [d['received'] for d in device_stats]
+            min_received = min(received_counts)
+            max_received = max(received_counts)
+            variance = max_received - min_received
+            variance_percent = (variance / min_received * 100) if min_received > 0 else 0.0
+            
+            print(f"\nPacket Count Variance:")
+            print(f"  Min: {min_received} packets")
+            print(f"  Max: {max_received} packets")
+            print(f"  Variance: {variance} packets ({variance_percent:.1f}%)")
+            
+            if variance > max_received * 0.05:  # More than 5% variance
+                print(f"  [WARNING] Significant variance detected between devices")
+                print(f"  This may indicate timing issues or unequal start/stop times")
+            else:
+                print(f"  [OK] Packet counts are consistent across devices")
+            
+            # Analyze timing synchronization
+            first_times = [d['first_packet_time'] for d in device_stats if d['first_packet_time']]
+            last_times = [d['last_packet_time'] for d in device_stats if d['last_packet_time']]
+            
+            if len(first_times) > 1 and len(last_times) > 1:
+                earliest_start = min(first_times)
+                latest_start = max(first_times)
+                start_spread = latest_start - earliest_start
+                
+                earliest_end = min(last_times)
+                latest_end = max(last_times)
+                end_spread = latest_end - earliest_end
+                
+                print(f"\nTiming Synchronization:")
+                print(f"  Start time spread: {start_spread:.3f}s")
+                print(f"  End time spread: {end_spread:.3f}s")
+                
+                if start_spread > 0.1:  # More than 100ms difference
+                    print(f"  [WARNING] Devices started at different times (up to {start_spread:.3f}s apart)")
+                    print(f"  This explains packet count differences")
+                else:
+                    print(f"  [OK] All devices started within {start_spread*1000:.0f}ms")
+                
+                if end_spread > 0.1:
+                    print(f"  [WARNING] Devices stopped at different times (up to {end_spread:.3f}s apart)")
+                else:
+                    print(f"  [OK] All devices stopped within {end_spread*1000:.0f}ms")
+        
+        if total_dropped > 0:
+            overall_drop_rate = (total_dropped / total_received * 100) if total_received > 0 else 0.0
+            print(f"\nOverall drop rate: {overall_drop_rate:.2f}%")
+            print(f"[WARNING] {total_dropped} packets were lost due to buffer overflow")
+            print(f"Consider reducing sample rate or number of devices if this persists")
+        else:
+            print(f"\n[SUCCESS] No packet loss - all BLE data captured successfully")
+        
+        print(f"{'='*70}")
     
     def display_collection_statistics_multi_device(self, device_buffers: Dict[str, Dict[str, Any]], 
                                                    session_duration: float):

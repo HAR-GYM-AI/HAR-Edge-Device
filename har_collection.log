@@ -49,3 +49,1419 @@
 2025-10-08 17:29:06,637 - INFO - Session finalized: 33 windows, 5850 samples (all chronologically sorted)
 2025-10-08 17:29:07,290 - INFO - Session saved to MongoDB with ID: 68e612c2b1eb573941a22b52
 2025-10-08 17:29:17,582 - INFO - MongoDB connection closed
+2025-10-08 18:15:06,970 - INFO - Connecting to MongoDB...
+2025-10-08 18:15:07,741 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:15:18,501 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:15:18,504 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:16:05,579 - INFO - MongoDB connection closed
+2025-10-08 18:16:08,955 - INFO - Connecting to MongoDB...
+2025-10-08 18:16:09,664 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:16:19,571 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:16:19,575 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:17:09,151 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:17:09,203 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:17:21,565 - INFO - MongoDB connection closed
+2025-10-08 18:19:56,767 - INFO - Connecting to MongoDB...
+2025-10-08 18:19:57,481 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:20:11,285 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:20:11,288 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:20:11,292 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:20:33,226 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 18:20:33,230 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:20:33,271 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:21:44,933 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:21:44,937 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:21:44,989 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:21:45,567 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:21:45,571 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:21:45,574 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:21:51,914 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:21:52,053 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:21:52,204 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:21:56,644 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:21:56,981 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:21:56,986 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:21:57,220 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:21:57,323 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:21:57,610 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:21:59,904 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:21:59,904 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:21:59,908 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:21:59,908 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:21:59,948 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:21:59,949 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:22:05,911 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:22:05,912 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:22:05,950 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:22:05,950 - INFO - Finalizing session data...
+2025-10-08 18:22:05,950 - INFO - Aggregated 95 windows from 3 devices.
+2025-10-08 18:22:05,950 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:22:05,950 - INFO - Session finalized: 95 windows, 16950 samples (all chronologically sorted)
+2025-10-08 18:22:07,105 - INFO - Session saved to MongoDB with ID: 68e61f2ee361404221b58af8
+2025-10-08 18:22:40,403 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:22:40,558 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:22:40,565 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:22:40,904 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:22:41,405 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:22:41,405 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:22:41,907 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:22:41,972 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:22:42,028 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:22:42,908 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:22:43,909 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:22:43,909 - ERROR - Failed to start collection on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:22:45,877 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:22:45,978 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:22:45,978 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:22:46,018 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:22:46,019 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:22:51,984 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:22:52,020 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:22:52,020 - INFO - Finalizing session data...
+2025-10-08 18:22:52,020 - INFO - Aggregated 12 windows from 3 devices.
+2025-10-08 18:22:52,020 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:22:52,020 - INFO - Session finalized: 12 windows, 2100 samples (all chronologically sorted)
+2025-10-08 18:22:52,316 - INFO - Session saved to MongoDB with ID: 68e61f5ce361404221b58af9
+2025-10-08 18:23:12,873 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:23:13,026 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:23:13,033 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:23:13,374 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:23:13,875 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:23:13,875 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:23:14,376 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:23:14,439 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:23:14,447 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:23:15,377 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:23:16,378 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:23:16,378 - ERROR - Failed to start collection on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:23:20,730 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:23:20,836 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:23:22,873 - WARNING - Device 30:C6:F7:01:D5:12 appears disconnected
+2025-10-08 18:23:22,873 - WARNING - Disconnected devices detected: ['30:C6:F7:01:D5:12']
+2025-10-08 18:23:25,759 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:23:25,898 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:23:26,150 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:23:26,288 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:23:30,008 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:23:30,138 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:23:30,138 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:23:30,145 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:23:30,146 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:23:40,393 - INFO - Connecting to MongoDB...
+2025-10-08 18:23:41,144 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:23:56,816 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:23:56,820 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:23:56,824 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:24:27,757 - ERROR - Calibration error for 30:C6:F7:01:D5:12: Service Discovery has not been performed yet
+2025-10-08 18:24:39,832 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 18:24:40,107 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:24:40,115 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:24:52,125 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 18:24:52,392 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:24:52,400 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:25:29,933 - INFO - Connecting to MongoDB...
+2025-10-08 18:25:30,641 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:25:43,130 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:25:43,135 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:25:43,138 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:26:03,070 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:26:03,073 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:26:03,077 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 18:26:31,587 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:26:31,591 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:26:31,643 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:26:32,221 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:26:32,225 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:26:32,228 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:26:39,048 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:26:39,100 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:26:40,761 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:26:44,073 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:26:44,412 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:26:44,415 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:26:44,898 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:26:47,978 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:26:48,415 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:26:48,754 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 18:26:49,382 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 18:26:53,969 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 40
+2025-10-08 18:26:54,165 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 10
+2025-10-08 18:26:54,211 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 18:26:54,453 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 18:26:54,703 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 18:26:59,136 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 50
+2025-10-08 18:26:59,572 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 50
+2025-10-08 18:27:01,043 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 18:27:01,383 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 10
+2025-10-08 18:27:03,767 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:27:03,767 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:27:03,812 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:27:03,813 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:27:04,210 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:27:04,210 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:27:09,770 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:27:09,813 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:27:10,212 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:27:10,212 - INFO - Finalizing session data...
+2025-10-08 18:27:10,212 - INFO - Aggregated 198 windows from 3 devices.
+2025-10-08 18:27:10,213 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:27:10,213 - INFO - Session finalized: 198 windows, 35400 samples (all chronologically sorted)
+2025-10-08 18:27:13,171 - INFO - Session saved to MongoDB with ID: 68e6205f4e157541962082b7
+2025-10-08 18:27:46,712 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:27:46,716 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:27:46,866 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:27:47,443 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:27:47,447 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:27:47,499 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:27:52,465 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:27:52,466 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:27:52,469 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:27:52,469 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:27:52,815 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:27:52,815 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:27:58,473 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:27:58,473 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:27:58,816 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:27:58,817 - INFO - Finalizing session data...
+2025-10-08 18:27:58,817 - INFO - Aggregated 17 windows from 3 devices.
+2025-10-08 18:27:58,817 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:27:58,817 - INFO - Session finalized: 17 windows, 2850 samples (all chronologically sorted)
+2025-10-08 18:27:59,175 - INFO - Session saved to MongoDB with ID: 68e6208e4e157541962082b8
+2025-10-08 18:28:17,766 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:28:17,770 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:28:17,822 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:28:18,400 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:28:18,404 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:28:18,602 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:28:24,597 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:28:24,885 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:28:26,188 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:28:26,300 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:28:26,300 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:28:26,302 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:28:26,302 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:28:32,307 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:28:32,307 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:28:32,307 - INFO - Finalizing session data...
+2025-10-08 18:28:32,307 - INFO - Aggregated 32 windows from 3 devices.
+2025-10-08 18:28:32,307 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:28:32,308 - INFO - Session finalized: 32 windows, 5700 samples (all chronologically sorted)
+2025-10-08 18:28:32,802 - INFO - Session saved to MongoDB with ID: 68e620b04e157541962082b9
+2025-10-08 18:28:46,393 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:28:46,578 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:28:46,582 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:28:46,894 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:28:47,395 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:28:47,395 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:28:47,898 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:28:47,992 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:28:47,995 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:28:48,899 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:28:49,899 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:28:49,900 - ERROR - Failed to start collection on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:28:52,800 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:28:52,917 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:28:52,917 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:28:52,968 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:28:52,968 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:28:58,924 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:28:58,969 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:28:58,969 - INFO - Finalizing session data...
+2025-10-08 18:28:58,970 - INFO - Aggregated 13 windows from 3 devices.
+2025-10-08 18:28:58,970 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:28:58,970 - INFO - Session finalized: 13 windows, 2250 samples (all chronologically sorted)
+2025-10-08 18:28:59,262 - INFO - Session saved to MongoDB with ID: 68e620cb4e157541962082ba
+2025-10-08 18:29:18,810 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:29:18,811 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:29:18,997 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:29:19,312 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:29:19,312 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:29:19,813 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:29:19,813 - ERROR - Failed to sync time on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 18:29:19,813 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:29:19,813 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:29:20,316 - ERROR - Error starting B0:B2:1C:5B:68:9E (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:29:20,316 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:29:20,411 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:29:21,318 - ERROR - Error starting B0:B2:1C:5B:68:9E (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:29:21,319 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:29:22,319 - ERROR - Error starting B0:B2:1C:5B:68:9E (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:29:22,319 - ERROR - Failed to start collection on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 18:29:22,320 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:29:22,320 - ERROR - Failed to start collection on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:29:26,993 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:29:28,810 - WARNING - Device B0:B2:1C:5B:68:9E appears disconnected
+2025-10-08 18:29:28,811 - WARNING - Device 30:C6:F7:01:D5:12 appears disconnected
+2025-10-08 18:29:28,811 - WARNING - Disconnected devices detected: ['B0:B2:1C:5B:68:9E', '30:C6:F7:01:D5:12']
+2025-10-08 18:29:31,934 - WARNING - Device B0:B2:1C:5B:68:9E already disconnected, skipping stop command
+2025-10-08 18:29:31,934 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:29:32,063 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:29:32,063 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:29:38,069 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:29:38,070 - INFO - Finalizing session data...
+2025-10-08 18:29:38,070 - INFO - Aggregated 23 windows from 3 devices.
+2025-10-08 18:29:38,070 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:29:38,070 - INFO - Session finalized: 23 windows, 4050 samples (all chronologically sorted)
+2025-10-08 18:29:38,473 - INFO - Session saved to MongoDB with ID: 68e620f24e157541962082bb
+2025-10-08 18:30:38,490 - INFO - MongoDB connection closed
+2025-10-08 18:31:24,728 - INFO - Connecting to MongoDB...
+2025-10-08 18:31:25,505 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:31:39,083 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:31:39,087 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:31:39,139 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:31:58,320 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:31:58,485 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:31:58,492 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:31:58,821 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:31:59,322 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:31:59,322 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:31:59,824 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:31:59,898 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:31:59,906 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:32:00,825 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:32:01,827 - ERROR - Error starting 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:32:01,827 - ERROR - Failed to start collection on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:32:06,537 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:32:07,748 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:32:08,136 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:32:08,236 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:32:08,236 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:32:08,243 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:32:08,243 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:35:10,658 - INFO - Connecting to MongoDB...
+2025-10-08 18:35:11,392 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:39:32,052 - INFO - Connecting to MongoDB...
+2025-10-08 18:39:32,766 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:39:49,778 - INFO - Connecting to MongoDB...
+2025-10-08 18:39:50,487 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:40:03,273 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:40:03,276 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:40:03,318 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:40:35,237 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:40:35,237 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:40:35,237 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:40:35,238 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:40:35,238 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:40:35,238 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:40:35,298 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:40:35,301 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:40:35,305 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:40:35,394 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:40:35,398 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:40:35,402 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:40:35,979 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:40:35,983 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:40:35,987 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:40:42,660 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:40:42,762 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:40:43,205 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:40:45,240 - ERROR - Device 30:C6:F7:01:D5:12 has disconnected!
+2025-10-08 18:40:45,241 - ERROR - CONNECTION LOST: 1 device(s) disconnected: BICEP (30:C6:F7:01:D5:12). Session requires 3 devices to remain connected. Aborting session.
+2025-10-08 18:40:45,241 - ERROR - Error in connection monitoring: CONNECTION LOST: 1 device(s) disconnected: BICEP (30:C6:F7:01:D5:12). Session requires 3 devices to remain connected. Aborting session.
+2025-10-08 18:40:45,241 - INFO - Stopping packet processor for CHEST: 629 processed, 0 remaining
+2025-10-08 18:40:45,241 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:40:45,241 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:40:45,241 - INFO - Stopping packet processor for BICEP: 619 processed, 0 remaining
+2025-10-08 18:40:45,241 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:40:45,242 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:40:45,242 - INFO - Stopping packet processor for WRIST: 676 processed, 0 remaining
+2025-10-08 18:40:45,242 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:40:45,242 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:40:45,242 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:40:45,389 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:40:45,390 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:40:45,445 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:40:45,445 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:40:51,398 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:40:51,446 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:40:51,446 - INFO - Finalizing session data...
+2025-10-08 18:40:51,446 - INFO - Aggregated 49 windows from 3 devices.
+2025-10-08 18:40:51,446 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:40:51,446 - INFO - Session finalized: 49 windows, 8700 samples (all chronologically sorted)
+2025-10-08 18:40:52,123 - INFO - Session saved to MongoDB with ID: 68e6239388695c3a7412df74
+2025-10-08 18:42:15,606 - INFO - MongoDB connection closed
+2025-10-08 18:42:41,335 - INFO - Connecting to MongoDB...
+2025-10-08 18:42:42,065 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:42:55,085 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:42:55,089 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:42:55,142 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:43:07,954 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:43:07,954 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:43:07,954 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:43:07,955 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:43:07,955 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:43:07,955 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:43:08,015 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:43:08,052 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:43:08,056 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:43:08,108 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:43:08,149 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:43:08,153 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:43:08,734 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:43:08,738 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:43:08,741 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:43:15,272 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:43:15,512 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:43:17,956 - ERROR - Device 30:C6:F7:01:D5:12 has disconnected!
+2025-10-08 18:43:17,957 - ERROR - CONNECTION LOST: 1 device(s) disconnected: BICEP (30:C6:F7:01:D5:12). Session requires 3 devices to remain connected. Aborting session.
+2025-10-08 18:43:17,957 - ERROR - Error in connection monitoring: CONNECTION LOST: 1 device(s) disconnected: BICEP (30:C6:F7:01:D5:12). Session requires 3 devices to remain connected. Aborting session.
+2025-10-08 18:43:17,957 - INFO - Stopping packet processor for WRIST: 691 processed, 0 remaining
+2025-10-08 18:43:17,957 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:43:17,957 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:43:17,957 - INFO - Stopping packet processor for CHEST: 665 processed, 0 remaining
+2025-10-08 18:43:17,957 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:43:17,957 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:43:17,958 - INFO - Stopping packet processor for BICEP: 172 processed, 0 remaining
+2025-10-08 18:43:17,958 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:43:17,958 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:43:17,958 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:43:18,099 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:43:18,099 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:43:18,144 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:43:18,144 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:43:24,103 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:43:24,144 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:43:24,145 - INFO - Finalizing session data...
+2025-10-08 18:43:24,145 - INFO - Aggregated 36 windows from 3 devices.
+2025-10-08 18:43:24,145 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:43:24,145 - INFO - Session finalized: 36 windows, 6300 samples (all chronologically sorted)
+2025-10-08 18:44:14,782 - INFO - Connecting to MongoDB...
+2025-10-08 18:44:15,482 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:44:27,877 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:44:27,880 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:44:27,884 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:44:47,180 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:44:47,180 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:44:47,180 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:44:47,181 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:44:47,182 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:44:47,182 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:44:47,279 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:44:47,282 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:44:47,286 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:44:47,376 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:44:47,379 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:44:47,383 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:44:47,960 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:44:47,964 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:44:48,017 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:44:54,299 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:44:54,986 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:44:55,088 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:44:59,420 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:44:59,906 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:45:00,251 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:45:00,303 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:45:00,647 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:45:00,690 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:45:01,272 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:45:01,957 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:45:01,961 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 18:45:04,684 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 18:45:05,127 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 18:45:05,373 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 18:45:09,607 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 18:45:09,804 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 18:45:10,198 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 40
+2025-10-08 18:45:10,440 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 10
+2025-10-08 18:45:10,737 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 18:45:11,077 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 10
+2025-10-08 18:45:12,599 - INFO - Stopping packet processor for CHEST: 1813 processed, 0 remaining
+2025-10-08 18:45:12,599 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:45:12,599 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:45:12,599 - INFO - Stopping packet processor for BICEP: 1760 processed, 0 remaining
+2025-10-08 18:45:12,600 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:45:12,600 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:45:12,600 - INFO - Stopping packet processor for WRIST: 1854 processed, 0 remaining
+2025-10-08 18:45:12,600 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:45:12,600 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:45:12,727 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:45:12,727 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:45:12,730 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:45:12,730 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:45:12,734 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:45:12,734 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:45:18,734 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:45:18,734 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:45:18,734 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:45:18,735 - INFO - Finalizing session data...
+2025-10-08 18:45:18,735 - INFO - Aggregated 164 windows from 3 devices.
+2025-10-08 18:45:18,735 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:45:18,735 - INFO - Session finalized: 164 windows, 29400 samples (all chronologically sorted)
+2025-10-08 18:45:30,495 - INFO - Session saved to MongoDB with ID: 68e6249fbb8b8daa85026938
+2025-10-08 18:47:58,087 - INFO - Connecting to MongoDB...
+2025-10-08 18:47:58,804 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:48:12,166 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:48:12,218 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:48:12,222 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:48:21,652 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:48:21,652 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:48:21,655 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:48:21,655 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:48:21,655 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:48:21,655 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:48:21,720 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:48:21,724 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:48:21,728 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:48:21,817 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:48:21,821 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:48:21,825 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:48:22,402 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:48:22,403 - INFO - First packet received from WRIST at 1759913302.404s
+2025-10-08 18:48:22,406 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:48:22,407 - INFO - First packet received from CHEST at 1759913302.407s
+2025-10-08 18:48:22,458 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:48:22,459 - INFO - First packet received from BICEP at 1759913302.460s
+2025-10-08 18:48:29,182 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:48:29,624 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:48:30,701 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:48:34,545 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:48:34,984 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:48:35,717 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:48:36,155 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:48:36,638 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:48:37,666 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:48:40,490 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 18:48:41,519 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 18:48:41,657 - ERROR - Device 30:C6:F7:01:D5:12 has disconnected!
+2025-10-08 18:48:41,657 - ERROR - CONNECTION LOST: 1 device(s) disconnected: BICEP (30:C6:F7:01:D5:12). Session requires 3 devices to remain connected. Aborting session.
+2025-10-08 18:48:41,657 - ERROR - Error in connection monitoring: CONNECTION LOST: 1 device(s) disconnected: BICEP (30:C6:F7:01:D5:12). Session requires 3 devices to remain connected. Aborting session.
+2025-10-08 18:48:41,657 - INFO - Stopping packet processor for WRIST: 1318 processed, 0 remaining
+2025-10-08 18:48:41,658 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:48:41,658 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:48:41,658 - INFO - Stopping packet processor for CHEST: 1260 processed, 0 remaining
+2025-10-08 18:48:41,658 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:48:41,658 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:48:41,658 - INFO - Stopping packet processor for BICEP: 771 processed, 0 remaining
+2025-10-08 18:48:41,658 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:48:41,658 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:48:41,658 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:48:41,763 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:48:41,763 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:48:41,806 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:48:41,806 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:48:47,770 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:48:47,808 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:48:47,808 - INFO - Finalizing session data...
+2025-10-08 18:48:47,808 - INFO - Aggregated 96 windows from 3 devices.
+2025-10-08 18:48:47,808 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:48:47,808 - INFO - Session finalized: 96 windows, 17100 samples (all chronologically sorted)
+2025-10-08 18:49:22,594 - INFO - MongoDB connection closed
+2025-10-08 18:49:25,382 - INFO - Connecting to MongoDB...
+2025-10-08 18:49:26,090 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:49:39,285 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:49:39,288 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:49:39,330 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:49:52,444 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:49:52,444 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:49:52,444 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:49:52,445 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:49:52,445 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:49:52,446 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:49:52,499 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:49:52,540 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:49:52,544 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:49:52,596 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:49:52,638 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:49:52,641 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:49:53,222 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:49:53,224 - INFO - First packet received from CHEST at 1759913393.224s
+2025-10-08 18:49:53,226 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:49:53,227 - INFO - First packet received from WRIST at 1759913393.227s
+2025-10-08 18:49:53,230 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:49:53,231 - INFO - First packet received from BICEP at 1759913393.231s
+2025-10-08 18:49:59,858 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:50:00,049 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:50:00,154 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:50:05,074 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:50:05,077 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:50:05,419 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:50:05,464 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:50:05,850 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:50:06,437 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:50:06,638 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 18:50:06,732 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:50:08,044 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:50:09,901 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 18:50:09,904 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 18:50:11,701 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 18:50:14,824 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 18:50:15,020 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 18:50:15,023 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 18:50:15,219 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 10
+2025-10-08 18:50:15,743 - INFO - Stopping packet processor for WRIST: 1703 processed, 0 remaining
+2025-10-08 18:50:15,743 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:50:15,743 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:50:15,743 - INFO - Stopping packet processor for BICEP: 1685 processed, 0 remaining
+2025-10-08 18:50:15,744 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:50:15,744 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:50:15,744 - INFO - Stopping packet processor for CHEST: 1554 processed, 0 remaining
+2025-10-08 18:50:15,744 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:50:15,744 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:50:15,847 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:50:15,847 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:50:15,893 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:50:15,893 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:50:15,899 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:50:15,899 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:50:21,854 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:50:21,894 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:50:21,900 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:50:21,901 - INFO - Finalizing session data...
+2025-10-08 18:50:21,901 - INFO - Aggregated 148 windows from 3 devices.
+2025-10-08 18:50:21,901 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:50:21,901 - INFO - Session finalized: 148 windows, 26550 samples (all chronologically sorted)
+2025-10-08 18:50:23,578 - INFO - Session saved to MongoDB with ID: 68e625cec2f66b07ca496547
+2025-10-08 18:51:45,227 - INFO - Connecting to MongoDB...
+2025-10-08 18:51:45,959 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:52:00,102 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=False
+2025-10-08 18:52:00,143 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 18:52:00,147 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:52:24,372 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:52:24,376 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 18:52:24,380 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:52:46,828 - INFO - Connecting to MongoDB...
+2025-10-08 18:52:47,546 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:52:59,788 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:52:59,791 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 18:52:59,881 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:53:22,396 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:53:22,397 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:53:22,397 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:53:22,397 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:53:22,397 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:53:22,397 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:53:22,452 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:53:22,456 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:53:22,459 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:53:22,549 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:53:22,553 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:53:22,557 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:53:23,134 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:53:23,135 - INFO - First packet received from CHEST at 1759913603.135s
+2025-10-08 18:53:23,138 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:53:23,139 - INFO - First packet received from WRIST at 1759913603.139s
+2025-10-08 18:53:23,142 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:53:23,142 - INFO - First packet received from BICEP at 1759913603.143s
+2025-10-08 18:53:29,330 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:53:29,677 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:53:30,253 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:53:34,403 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:53:34,652 - INFO - Stopping packet processor for WRIST: 892 processed, 0 remaining
+2025-10-08 18:53:34,652 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:53:34,652 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:53:34,652 - INFO - Stopping packet processor for BICEP: 850 processed, 0 remaining
+2025-10-08 18:53:34,652 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:53:34,653 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:53:34,653 - INFO - Stopping packet processor for CHEST: 799 processed, 0 remaining
+2025-10-08 18:53:34,653 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:53:34,653 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:53:34,835 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:53:34,835 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:53:34,887 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:53:34,887 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:53:34,891 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:53:34,891 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:53:40,842 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:53:40,888 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:53:40,891 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:53:40,892 - INFO - Finalizing session data...
+2025-10-08 18:53:40,892 - INFO - Aggregated 69 windows from 3 devices.
+2025-10-08 18:53:40,892 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:53:40,892 - INFO - Session finalized: 69 windows, 12150 samples (all chronologically sorted)
+2025-10-08 18:53:41,890 - INFO - Session saved to MongoDB with ID: 68e62695749038f4836aee57
+2025-10-08 18:53:58,166 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:53:58,167 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:53:58,167 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:53:58,168 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:53:58,168 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:53:58,168 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:53:58,235 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:53:58,239 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:53:58,242 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:53:58,332 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:53:58,336 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:53:58,340 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:53:58,917 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:53:58,918 - INFO - First packet received from CHEST at 1759913638.918s
+2025-10-08 18:53:58,921 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:53:58,922 - INFO - First packet received from WRIST at 1759913638.922s
+2025-10-08 18:53:58,925 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:53:58,925 - INFO - First packet received from BICEP at 1759913638.926s
+2025-10-08 18:54:05,114 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:54:05,264 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:54:05,695 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:54:07,523 - INFO - Stopping packet processor for WRIST: 687 processed, 0 remaining
+2025-10-08 18:54:07,523 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:54:07,523 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:54:07,523 - INFO - Stopping packet processor for BICEP: 663 processed, 0 remaining
+2025-10-08 18:54:07,524 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:54:07,524 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:54:07,524 - INFO - Stopping packet processor for CHEST: 622 processed, 0 remaining
+2025-10-08 18:54:07,524 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:54:07,524 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:54:07,644 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:54:07,644 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:54:07,648 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:54:07,648 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:54:07,652 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:54:07,653 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:54:13,652 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:54:13,652 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:54:13,653 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:54:13,653 - INFO - Finalizing session data...
+2025-10-08 18:54:13,654 - INFO - Aggregated 51 windows from 3 devices.
+2025-10-08 18:54:13,654 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:54:13,654 - INFO - Session finalized: 51 windows, 9000 samples (all chronologically sorted)
+2025-10-08 18:54:14,393 - INFO - Session saved to MongoDB with ID: 68e626b5749038f4836aee58
+2025-10-08 18:54:36,461 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:54:36,461 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:54:36,461 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:54:36,461 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:54:36,461 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:54:36,461 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:54:36,553 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:54:36,557 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:54:36,560 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:54:36,650 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:54:36,654 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:54:36,658 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:54:37,235 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:54:37,236 - INFO - First packet received from CHEST at 1759913677.237s
+2025-10-08 18:54:37,239 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:54:37,240 - INFO - First packet received from WRIST at 1759913677.240s
+2025-10-08 18:54:37,243 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:54:37,243 - INFO - First packet received from BICEP at 1759913677.244s
+2025-10-08 18:54:43,386 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:54:43,480 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:54:44,160 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:54:48,307 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:54:48,360 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:54:48,649 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:54:48,702 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:54:48,937 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:54:49,279 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:54:49,917 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:54:49,969 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 18:54:50,643 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:54:52,665 - INFO - Stopping packet processor for WRIST: 1201 processed, 0 remaining
+2025-10-08 18:54:52,666 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:54:52,666 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:54:52,666 - INFO - Stopping packet processor for BICEP: 1196 processed, 0 remaining
+2025-10-08 18:54:52,667 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:54:52,667 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:54:52,667 - INFO - Stopping packet processor for CHEST: 1150 processed, 0 remaining
+2025-10-08 18:54:52,667 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:54:52,667 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:54:52,791 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:54:52,791 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:54:52,795 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:54:52,795 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:54:52,835 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:54:52,836 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:54:58,794 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:54:58,796 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:54:58,836 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:54:58,836 - INFO - Finalizing session data...
+2025-10-08 18:54:58,837 - INFO - Aggregated 102 windows from 3 devices.
+2025-10-08 18:54:58,837 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:54:58,837 - INFO - Session finalized: 102 windows, 18150 samples (all chronologically sorted)
+2025-10-08 18:55:00,053 - INFO - Session saved to MongoDB with ID: 68e626e3749038f4836aee59
+2025-10-08 18:55:14,559 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 18:55:14,823 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:55:14,827 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:55:46,533 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:55:46,533 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:55:46,533 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:55:46,533 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:55:46,534 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:55:46,534 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:55:46,535 - ERROR - Error in notification handler for 30:C6:F7:01:D5:12: Not connected
+2025-10-08 18:55:46,535 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 18:55:46,608 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:55:46,611 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:55:46,705 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:55:46,708 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:55:47,036 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 18:55:47,538 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 18:55:47,538 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 18:55:47,538 - ERROR - Time sync failed on 1 device(s) - aborting session
+2025-10-08 18:55:47,538 - INFO - Stopping packet processor for WRIST: 0 processed, 0 remaining
+2025-10-08 18:55:47,539 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:55:47,539 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:55:47,539 - INFO - Stopping packet processor for BICEP: 0 processed, 0 remaining
+2025-10-08 18:55:47,539 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:55:47,539 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:55:47,539 - INFO - Stopping packet processor for CHEST: 0 processed, 0 remaining
+2025-10-08 18:55:47,539 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:55:47,539 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:55:47,540 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 18:55:47,631 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:55:47,631 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:55:47,635 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:55:47,635 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:55:53,638 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:55:53,638 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:55:53,639 - INFO - Finalizing session data...
+2025-10-08 18:55:53,639 - INFO - Aggregated 0 windows from 3 devices.
+2025-10-08 18:55:53,639 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:55:53,639 - INFO - Session finalized: 0 windows, 0 samples (all chronologically sorted)
+2025-10-08 18:56:02,340 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 18:56:02,599 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:56:02,603 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:56:21,590 - INFO - MongoDB connection closed
+2025-10-08 18:56:24,727 - INFO - Connecting to MongoDB...
+2025-10-08 18:56:25,443 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:56:38,326 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:56:38,329 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:56:38,333 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:56:48,758 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:56:48,758 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:56:48,758 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:56:48,758 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:56:48,759 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:56:48,759 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:56:48,813 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:56:48,855 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:56:48,858 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:56:48,911 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:56:48,952 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:56:48,955 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:56:49,537 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:56:49,538 - INFO - First packet received from BICEP at 1759913809.538s
+2025-10-08 18:56:49,540 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:56:49,541 - INFO - First packet received from WRIST at 1759913809.542s
+2025-10-08 18:56:49,544 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:56:49,545 - INFO - First packet received from CHEST at 1759913809.546s
+2025-10-08 18:56:56,022 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:56:56,173 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:56:56,323 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:57:01,239 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:57:01,345 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:57:01,631 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:57:01,632 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:57:01,735 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:57:01,976 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:57:02,953 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:57:03,042 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 18:57:03,387 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:57:06,218 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 18:57:06,698 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 18:57:06,701 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 18:57:11,240 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 40
+2025-10-08 18:57:11,436 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 10
+2025-10-08 18:57:11,671 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 18:57:11,723 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 18:57:11,915 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 10
+2025-10-08 18:57:11,920 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 18:57:16,260 - INFO - CHEST: Processed 2000 packets, 0 queued
+2025-10-08 18:57:16,407 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 50
+2025-10-08 18:57:16,448 - INFO - BICEP: Processed 2000 packets, 0 queued
+2025-10-08 18:57:16,502 - INFO - WRIST: Processed 2000 packets, 0 queued
+2025-10-08 18:57:16,595 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 50
+2025-10-08 18:57:16,698 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 50
+2025-10-08 18:57:21,331 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 60
+2025-10-08 18:57:21,429 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 15
+2025-10-08 18:57:21,861 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 60
+2025-10-08 18:57:21,958 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 15
+2025-10-08 18:57:22,059 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 60
+2025-10-08 18:57:22,157 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 15
+2025-10-08 18:57:24,330 - INFO - Stopping packet processor for CHEST: 2633 processed, 0 remaining
+2025-10-08 18:57:24,330 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:57:24,330 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:57:24,330 - INFO - Stopping packet processor for WRIST: 2562 processed, 0 remaining
+2025-10-08 18:57:24,330 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:57:24,331 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:57:24,331 - INFO - Stopping packet processor for BICEP: 2575 processed, 0 remaining
+2025-10-08 18:57:24,331 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:57:24,331 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:57:24,443 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:57:24,443 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:57:24,447 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:57:24,447 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:57:24,500 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:57:24,500 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:57:30,451 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:57:30,451 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:57:30,501 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:57:30,501 - INFO - Finalizing session data...
+2025-10-08 18:57:30,501 - INFO - Aggregated 242 windows from 3 devices.
+2025-10-08 18:57:30,502 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:57:30,502 - INFO - Session finalized: 242 windows, 43500 samples (all chronologically sorted)
+2025-10-08 18:57:35,847 - INFO - Session saved to MongoDB with ID: 68e6277b8b199f2aabbf9a8e
+2025-10-08 18:57:49,416 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:57:49,416 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:57:49,417 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:57:49,418 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:57:49,418 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:57:49,418 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:57:49,501 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:57:49,504 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:57:49,508 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:57:49,598 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:57:49,601 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:57:49,605 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:57:50,183 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:57:50,186 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:57:50,187 - INFO - First packet received from WRIST at 1759913870.188s
+2025-10-08 18:57:50,190 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:57:50,191 - INFO - First packet received from CHEST at 1759913870.192s
+2025-10-08 18:57:50,232 - INFO - First packet received from BICEP at 1759913870.232s
+2025-10-08 18:57:56,717 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:57:56,871 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:57:57,161 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:58:01,691 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:58:01,843 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:58:02,033 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:58:02,187 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:58:02,376 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:58:02,766 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:58:03,443 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 18:58:03,548 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:58:03,986 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:58:06,759 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 18:58:06,817 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 18:58:07,155 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 18:58:11,488 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 18:58:11,686 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 10
+2025-10-08 18:58:11,983 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 40
+2025-10-08 18:58:12,174 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 18:58:12,179 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 10
+2025-10-08 18:58:12,371 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 18:58:15,152 - INFO - Stopping packet processor for WRIST: 1851 processed, 0 remaining
+2025-10-08 18:58:15,152 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:58:15,153 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:58:15,153 - INFO - Stopping packet processor for BICEP: 1922 processed, 0 remaining
+2025-10-08 18:58:15,153 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:58:15,153 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:58:16,906 - INFO - CHEST: Processed 2000 packets, 0 queued
+2025-10-08 18:58:17,053 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 50
+2025-10-08 18:58:21,830 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 60
+2025-10-08 18:58:21,929 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 15
+2025-10-08 18:58:26,706 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 70
+2025-10-08 18:58:29,974 - INFO - CHEST: Processed 3000 packets, 0 queued
+2025-10-08 18:58:32,410 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 20
+2025-10-08 18:58:32,411 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 80
+2025-10-08 18:58:37,627 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 90
+2025-10-08 18:58:38,248 - INFO - Stopping packet processor for CHEST: 3579 processed, 0 remaining
+2025-10-08 18:58:38,249 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:58:38,249 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:58:43,523 - INFO - Connecting to MongoDB...
+2025-10-08 18:58:44,246 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 18:58:56,774 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 18:58:56,826 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 18:58:56,868 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 18:59:12,098 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:59:12,098 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:59:12,099 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:59:12,099 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:59:12,100 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:59:12,100 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:59:12,178 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:59:12,182 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:59:12,223 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:59:12,275 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:59:12,279 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:59:12,369 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:59:12,954 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:59:12,955 - INFO - First packet received from CHEST at 1759913952.955s
+2025-10-08 18:59:12,958 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:59:12,958 - INFO - First packet received from BICEP at 1759913952.959s
+2025-10-08 18:59:12,961 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:59:12,962 - INFO - First packet received from WRIST at 1759913952.963s
+2025-10-08 18:59:19,247 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:59:19,496 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:59:21,731 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:59:24,279 - INFO - Stopping packet processor for CHEST: 636 processed, 0 remaining
+2025-10-08 18:59:24,280 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 18:59:24,280 - INFO - Drained 0 packets from CHEST
+2025-10-08 18:59:24,280 - INFO - Stopping packet processor for BICEP: 870 processed, 0 remaining
+2025-10-08 18:59:24,280 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 18:59:24,280 - INFO - Drained 0 packets from BICEP
+2025-10-08 18:59:24,280 - INFO - Stopping packet processor for WRIST: 852 processed, 0 remaining
+2025-10-08 18:59:24,280 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 18:59:24,280 - INFO - Drained 0 packets from WRIST
+2025-10-08 18:59:24,411 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:59:24,412 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 18:59:24,414 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 18:59:24,415 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 18:59:24,418 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:59:24,419 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 18:59:30,415 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 18:59:30,415 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 18:59:30,419 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 18:59:30,419 - INFO - Finalizing session data...
+2025-10-08 18:59:30,420 - INFO - Aggregated 62 windows from 3 devices.
+2025-10-08 18:59:30,420 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 18:59:30,420 - INFO - Session finalized: 62 windows, 10950 samples (all chronologically sorted)
+2025-10-08 18:59:31,234 - INFO - Session saved to MongoDB with ID: 68e627f20942a7d49b07ebf4
+2025-10-08 18:59:40,827 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 18:59:40,827 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 18:59:40,827 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 18:59:40,827 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:59:40,828 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:59:40,828 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:59:40,889 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 18:59:40,893 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 18:59:40,896 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 18:59:40,989 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 18:59:40,993 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 18:59:41,034 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 18:59:41,619 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 18:59:41,620 - INFO - First packet received from CHEST at 1759913981.621s
+2025-10-08 18:59:41,623 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 18:59:41,624 - INFO - First packet received from BICEP at 1759913981.624s
+2025-10-08 18:59:41,627 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 18:59:41,628 - INFO - First packet received from WRIST at 1759913981.628s
+2025-10-08 18:59:47,771 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 18:59:48,061 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 18:59:50,203 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 18:59:52,648 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 18:59:52,788 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 18:59:52,989 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 18:59:53,130 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 18:59:54,303 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 18:59:54,348 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 18:59:55,856 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 18:59:56,344 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 18:59:57,659 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 18:59:57,664 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 18:59:57,765 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 19:00:01,267 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 19:00:02,589 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 19:00:02,591 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 19:00:02,688 - INFO - Stopping packet processor for CHEST: 1340 processed, 0 remaining
+2025-10-08 19:00:02,689 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:00:02,691 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:00:02,692 - INFO - Stopping packet processor for BICEP: 1638 processed, 0 remaining
+2025-10-08 19:00:02,692 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:00:02,692 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:00:02,835 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 19:00:07,172 - INFO - WRIST: Processed 2000 packets, 0 queued
+2025-10-08 19:00:07,319 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 50
+2025-10-08 19:00:12,438 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 60
+2025-10-08 19:00:12,536 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 15
+2025-10-08 19:00:13,832 - INFO - Stopping packet processor for WRIST: 2491 processed, 0 remaining
+2025-10-08 19:00:13,832 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:00:13,832 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:00:16,486 - INFO - Connecting to MongoDB...
+2025-10-08 19:00:17,188 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:00:29,254 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 19:00:29,257 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:00:29,309 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:00:56,517 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:00:56,517 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:00:56,517 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:00:56,518 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:00:56,519 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:00:56,519 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:00:56,602 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:00:56,606 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:00:56,609 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:00:56,699 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:00:56,703 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:00:56,707 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:00:57,284 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:00:57,285 - INFO - First packet received from BICEP at 1759914057.286s
+2025-10-08 19:00:57,288 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:00:57,289 - INFO - First packet received from CHEST at 1759914057.289s
+2025-10-08 19:00:57,291 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:00:57,292 - INFO - First packet received from WRIST at 1759914057.293s
+2025-10-08 19:01:03,582 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 19:01:04,258 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 19:01:04,553 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 19:01:06,373 - INFO - Stopping packet processor for CHEST: 624 processed, 0 remaining
+2025-10-08 19:01:06,374 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:01:06,374 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:01:06,374 - INFO - Stopping packet processor for BICEP: 655 processed, 0 remaining
+2025-10-08 19:01:06,374 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:01:06,374 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:01:06,374 - INFO - Stopping packet processor for WRIST: 700 processed, 0 remaining
+2025-10-08 19:01:06,374 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:01:06,375 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:01:06,498 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:01:06,499 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:01:06,502 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:01:06,502 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:01:06,506 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:01:06,506 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:01:12,505 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:01:12,505 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:01:12,507 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:01:12,507 - INFO - Finalizing session data...
+2025-10-08 19:01:12,507 - INFO - Aggregated 51 windows from 3 devices.
+2025-10-08 19:01:12,508 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:01:12,508 - INFO - Session finalized: 51 windows, 9000 samples (all chronologically sorted)
+2025-10-08 19:01:13,198 - INFO - Session saved to MongoDB with ID: 68e62858d06f662333e2ff3f
+2025-10-08 19:01:23,664 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:01:23,667 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:01:23,708 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 19:01:53,968 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:01:53,968 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:01:53,968 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:01:53,969 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:01:53,969 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:01:53,969 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:01:53,970 - ERROR - Error in notification handler for 30:C6:F7:01:D5:12: 
+2025-10-08 19:01:53,971 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 19:01:54,038 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:01:54,083 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:01:54,135 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:01:54,180 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:01:54,471 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 19:01:54,972 - ERROR - Error syncing time on 30:C6:F7:01:D5:12 (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 19:01:54,973 - ERROR - Failed to sync time on 30:C6:F7:01:D5:12 after 3 attempts
+2025-10-08 19:01:54,973 - ERROR - Time sync failed on 1 device(s) - aborting session
+2025-10-08 19:01:54,973 - INFO - Stopping packet processor for CHEST: 0 processed, 0 remaining
+2025-10-08 19:01:54,973 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:01:54,973 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:01:54,973 - INFO - Stopping packet processor for BICEP: 0 processed, 0 remaining
+2025-10-08 19:01:54,973 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:01:54,973 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:01:54,974 - INFO - Stopping packet processor for WRIST: 0 processed, 0 remaining
+2025-10-08 19:01:54,974 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:01:54,974 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:01:54,974 - WARNING - Device 30:C6:F7:01:D5:12 already disconnected, skipping stop command
+2025-10-08 19:01:55,057 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:01:55,058 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:01:55,061 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:01:55,061 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:02:01,064 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:02:01,064 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:02:01,065 - INFO - Finalizing session data...
+2025-10-08 19:02:01,065 - INFO - Aggregated 0 windows from 3 devices.
+2025-10-08 19:02:01,065 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:02:01,065 - INFO - Session finalized: 0 windows, 0 samples (all chronologically sorted)
+2025-10-08 19:02:09,086 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 19:02:09,343 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:02:09,346 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:02:19,562 - INFO - MongoDB connection closed
+2025-10-08 19:02:22,096 - INFO - Connecting to MongoDB...
+2025-10-08 19:02:22,824 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:02:35,414 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 19:02:35,418 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:02:35,471 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:03:01,113 - INFO - Connecting to MongoDB...
+2025-10-08 19:03:01,808 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:03:13,529 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:03:13,532 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:03:13,536 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 19:03:40,878 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:03:40,881 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:03:40,885 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 19:04:18,867 - INFO - Connecting to MongoDB...
+2025-10-08 19:04:19,597 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:04:31,558 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:04:31,562 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:04:31,566 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 19:04:51,808 - INFO - Connecting to MongoDB...
+2025-10-08 19:04:52,513 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:05:04,848 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:05:04,851 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:05:05,099 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 19:05:15,825 - ERROR - Calibration error for 30:C6:F7:01:D5:12: Service Discovery has not been performed yet
+2025-10-08 19:05:27,967 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 19:05:28,248 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:05:28,251 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:05:40,129 - INFO - Connecting to MongoDB...
+2025-10-08 19:05:40,838 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:06:30,972 - INFO - Connecting to MongoDB...
+2025-10-08 19:06:31,695 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:06:45,236 - ERROR - Error unsubscribing from notifications: Service Discovery has not been performed yet
+2025-10-08 19:06:45,524 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:06:45,577 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=False
+2025-10-08 19:07:06,413 - ERROR - Calibration error for 30:C6:F7:01:D5:12: Service Discovery has not been performed yet
+2025-10-08 19:07:19,907 - INFO - Connecting to MongoDB...
+2025-10-08 19:07:20,616 - INFO - Successfully connected to MongoDB: har_system.training_data
+2025-10-08 19:07:33,270 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:07:33,273 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:07:33,277 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=False
+2025-10-08 19:07:51,454 - INFO - Parsed heartbeat response: node_id=0, running=False, calibrated=True
+2025-10-08 19:07:51,457 - INFO - Parsed heartbeat response: node_id=2, running=False, calibrated=True
+2025-10-08 19:07:51,461 - INFO - Parsed heartbeat response: node_id=1, running=False, calibrated=True
+2025-10-08 19:08:11,306 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:08:11,306 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:08:11,306 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:08:11,307 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:08:11,307 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:08:11,307 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:08:11,392 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:08:11,395 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:08:11,399 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:08:11,489 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:08:11,492 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:08:11,496 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:08:12,077 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:08:12,078 - INFO - First packet received from CHEST at 1759914492.079s
+2025-10-08 19:08:12,081 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:08:12,082 - INFO - First packet received from BICEP at 1759914492.083s
+2025-10-08 19:08:12,123 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:08:12,172 - INFO - First packet received from WRIST at 1759914492.172s
+2025-10-08 19:08:18,510 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 19:08:18,567 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 19:08:18,708 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 19:08:19,344 - INFO - Stopping packet processor for CHEST: 546 processed, 1 remaining
+2025-10-08 19:08:19,345 - INFO - Draining remaining 1 packets from CHEST...
+2025-10-08 19:08:19,345 - INFO - Drained 1 packets from CHEST
+2025-10-08 19:08:19,345 - INFO - Stopping packet processor for WRIST: 562 processed, 0 remaining
+2025-10-08 19:08:19,345 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:08:19,345 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:08:19,345 - INFO - Stopping packet processor for BICEP: 555 processed, 0 remaining
+2025-10-08 19:08:19,345 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:08:19,346 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:08:19,485 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:08:19,485 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:08:19,538 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:08:19,538 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:08:19,540 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:08:19,540 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:08:25,491 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:08:25,538 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:08:25,541 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:08:25,541 - INFO - Finalizing session data...
+2025-10-08 19:08:25,541 - INFO - Aggregated 39 windows from 3 devices.
+2025-10-08 19:08:25,541 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:08:25,541 - INFO - Session finalized: 39 windows, 6750 samples (all chronologically sorted)
+2025-10-08 19:08:26,065 - INFO - Session saved to MongoDB with ID: 68e62a09416b3e9b57dca4d0
+2025-10-08 19:08:46,461 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:08:46,461 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:08:46,461 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:08:46,462 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:08:46,462 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:08:46,462 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:08:46,541 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:08:46,545 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:08:46,548 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:08:46,638 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:08:46,642 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:08:46,646 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:08:47,223 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:08:47,224 - INFO - First packet received from WRIST at 1759914527.224s
+2025-10-08 19:08:47,227 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:08:47,228 - INFO - First packet received from CHEST at 1759914527.228s
+2025-10-08 19:08:47,231 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:08:47,231 - INFO - First packet received from BICEP at 1759914527.232s
+2025-10-08 19:08:53,102 - INFO - Stopping packet processor for CHEST: 439 processed, 0 remaining
+2025-10-08 19:08:53,102 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:08:53,102 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:08:53,102 - INFO - Stopping packet processor for WRIST: 463 processed, 0 remaining
+2025-10-08 19:08:53,102 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:08:53,102 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:08:53,103 - INFO - Stopping packet processor for BICEP: 477 processed, 0 remaining
+2025-10-08 19:08:53,103 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:08:53,103 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:08:53,220 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:08:53,220 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:08:53,224 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:08:53,224 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:08:53,228 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:08:53,228 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:08:59,225 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:08:59,225 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:08:59,229 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:08:59,230 - INFO - Finalizing session data...
+2025-10-08 19:08:59,230 - INFO - Aggregated 31 windows from 3 devices.
+2025-10-08 19:08:59,230 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:08:59,230 - INFO - Session finalized: 31 windows, 5400 samples (all chronologically sorted)
+2025-10-08 19:08:59,705 - INFO - Session saved to MongoDB with ID: 68e62a2b416b3e9b57dca4d1
+2025-10-08 19:09:18,785 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:09:18,785 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:09:18,785 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:09:18,786 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:09:18,786 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:09:18,786 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:09:18,863 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:09:18,866 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:09:18,870 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:09:18,960 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:09:18,963 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:09:18,967 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:09:19,545 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:09:19,546 - INFO - First packet received from WRIST at 1759914559.546s
+2025-10-08 19:09:19,549 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:09:19,550 - INFO - First packet received from CHEST at 1759914559.550s
+2025-10-08 19:09:19,552 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:09:19,553 - INFO - First packet received from BICEP at 1759914559.554s
+2025-10-08 19:09:25,738 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 19:09:25,793 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 19:09:26,815 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 19:09:28,095 - INFO - Stopping packet processor for CHEST: 586 processed, 0 remaining
+2025-10-08 19:09:28,095 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:09:28,095 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:09:28,095 - INFO - Stopping packet processor for WRIST: 674 processed, 0 remaining
+2025-10-08 19:09:28,095 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:09:28,096 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:09:28,096 - INFO - Stopping packet processor for BICEP: 679 processed, 0 remaining
+2025-10-08 19:09:28,096 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:09:28,096 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:09:28,223 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:09:28,223 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:09:28,227 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:09:28,227 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:09:28,231 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:09:28,231 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:09:34,230 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:09:34,231 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:09:34,232 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:09:34,232 - INFO - Finalizing session data...
+2025-10-08 19:09:34,232 - INFO - Aggregated 48 windows from 3 devices.
+2025-10-08 19:09:34,232 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:09:34,233 - INFO - Session finalized: 48 windows, 8400 samples (all chronologically sorted)
+2025-10-08 19:09:34,901 - INFO - Session saved to MongoDB with ID: 68e62a4e416b3e9b57dca4d2
+2025-10-08 19:09:57,631 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:09:57,632 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:09:57,632 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:09:57,632 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:09:57,632 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:09:57,632 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:09:57,717 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:09:57,721 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:09:57,724 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:09:57,814 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:09:57,818 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:09:57,822 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:09:58,399 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:09:58,400 - INFO - First packet received from WRIST at 1759914598.401s
+2025-10-08 19:09:58,403 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:09:58,404 - INFO - First packet received from CHEST at 1759914598.404s
+2025-10-08 19:09:58,407 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:09:58,407 - INFO - First packet received from BICEP at 1759914598.408s
+2025-10-08 19:10:04,545 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 19:10:04,649 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 19:10:06,060 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 19:10:09,272 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 19:10:09,329 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 19:10:09,615 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 19:10:09,671 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 19:10:10,882 - INFO - WRIST: Processed 1000 packets, 0 queued
+2025-10-08 19:10:10,937 - INFO - BICEP: Processed 1000 packets, 0 queued
+2025-10-08 19:10:11,031 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 19:10:11,373 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 19:10:12,736 - INFO - CHEST: Processed 1000 packets, 0 queued
+2025-10-08 19:10:13,954 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 19:10:14,155 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 30
+2025-10-08 19:10:15,956 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 19:10:18,729 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 40
+2025-10-08 19:10:18,926 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 10
+2025-10-08 19:10:19,225 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 40
+2025-10-08 19:10:19,422 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 10
+2025-10-08 19:10:21,122 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 40
+2025-10-08 19:10:21,319 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 10
+2025-10-08 19:10:23,216 - INFO - WRIST: Processed 2000 packets, 0 queued
+2025-10-08 19:10:23,363 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 50
+2025-10-08 19:10:24,003 - INFO - BICEP: Processed 2000 packets, 0 queued
+2025-10-08 19:10:24,150 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 50
+2025-10-08 19:10:25,964 - INFO - Stopping packet processor for CHEST: 1972 processed, 0 remaining
+2025-10-08 19:10:25,964 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:10:25,964 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:10:25,964 - INFO - Stopping packet processor for WRIST: 2204 processed, 0 remaining
+2025-10-08 19:10:25,964 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:10:25,964 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:10:25,965 - INFO - Stopping packet processor for BICEP: 2157 processed, 0 remaining
+2025-10-08 19:10:25,965 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:10:25,965 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:10:26,090 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:10:26,090 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:10:26,094 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:10:26,094 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:10:26,097 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:10:26,098 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:10:32,092 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:10:32,094 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:10:32,099 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:10:32,099 - INFO - Finalizing session data...
+2025-10-08 19:10:32,099 - INFO - Aggregated 194 windows from 3 devices.
+2025-10-08 19:10:32,099 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:10:32,099 - INFO - Session finalized: 194 windows, 34800 samples (all chronologically sorted)
+2025-10-08 19:10:34,500 - INFO - Session saved to MongoDB with ID: 68e62a89416b3e9b57dca4d3
+2025-10-08 19:10:54,378 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:10:54,378 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:10:54,378 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:10:54,379 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:10:54,379 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:10:54,379 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:10:54,463 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:10:54,466 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:10:54,470 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:10:54,560 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:10:54,563 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:10:54,567 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:10:55,145 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:10:55,146 - INFO - First packet received from WRIST at 1759914655.146s
+2025-10-08 19:10:55,148 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:10:55,149 - INFO - First packet received from CHEST at 1759914655.150s
+2025-10-08 19:10:55,152 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:10:55,153 - INFO - First packet received from BICEP at 1759914655.154s
+2025-10-08 19:11:01,240 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 19:11:01,589 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 10
+2025-10-08 19:11:02,464 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 19:11:06,117 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 19:11:06,366 - INFO - Device 30:C6:F7:01:D5:12: Extracted short window 20
+2025-10-08 19:11:06,459 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 19:11:06,708 - INFO - Device 30:C6:F7:01:D5:12: Extracted long window 5
+2025-10-08 19:11:06,903 - INFO - Stopping packet processor for CHEST: 799 processed, 0 remaining
+2025-10-08 19:11:06,903 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:11:06,903 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:11:06,904 - INFO - Stopping packet processor for WRIST: 936 processed, 0 remaining
+2025-10-08 19:11:06,904 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:11:06,904 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:11:06,904 - INFO - Stopping packet processor for BICEP: 916 processed, 1 remaining
+2025-10-08 19:11:06,904 - INFO - Draining remaining 1 packets from BICEP...
+2025-10-08 19:11:06,904 - INFO - Drained 1 packets from BICEP
+2025-10-08 19:11:07,041 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:11:07,041 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:11:07,044 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:11:07,044 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:11:07,048 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:11:07,048 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:11:13,048 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:11:13,048 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:11:13,049 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:11:13,050 - INFO - Finalizing session data...
+2025-10-08 19:11:13,050 - INFO - Aggregated 74 windows from 3 devices.
+2025-10-08 19:11:13,050 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:11:13,050 - INFO - Session finalized: 74 windows, 13200 samples (all chronologically sorted)
+2025-10-08 19:11:14,592 - INFO - Session saved to MongoDB with ID: 68e62ab1416b3e9b57dca4d4
+2025-10-08 19:11:32,927 - INFO - Initialized 10000-packet buffer for CHEST
+2025-10-08 19:11:32,927 - INFO - Initialized 10000-packet buffer for WRIST
+2025-10-08 19:11:32,927 - INFO - Initialized 10000-packet buffer for BICEP
+2025-10-08 19:11:32,927 - INFO - Started packet processor for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:11:32,927 - INFO - Started packet processor for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:11:32,928 - INFO - Started packet processor for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:11:33,025 - INFO - Started notifications for WRIST (B0:B2:1C:5B:69:2E)
+2025-10-08 19:11:33,028 - INFO - Started notifications for CHEST (B0:B2:1C:5B:68:9E)
+2025-10-08 19:11:33,032 - INFO - Started notifications for BICEP (30:C6:F7:01:D5:12)
+2025-10-08 19:11:33,122 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 19:11:33,125 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 19:11:33,129 - INFO - Time synced on 30:C6:F7:01:D5:12 to 0ms
+2025-10-08 19:11:33,707 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:11:33,708 - INFO - First packet received from WRIST at 1759914693.708s
+2025-10-08 19:11:33,710 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:11:33,711 - INFO - First packet received from CHEST at 1759914693.712s
+2025-10-08 19:11:33,714 - INFO - Started collection on 30:C6:F7:01:D5:12
+2025-10-08 19:11:33,715 - INFO - First packet received from BICEP at 1759914693.715s
+2025-10-08 19:11:39,851 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 19:11:39,991 - INFO - Stopping packet processor for CHEST: 459 processed, 0 remaining
+2025-10-08 19:11:39,991 - INFO - Draining remaining 0 packets from CHEST...
+2025-10-08 19:11:39,991 - INFO - Drained 0 packets from CHEST
+2025-10-08 19:11:39,991 - INFO - Stopping packet processor for WRIST: 497 processed, 0 remaining
+2025-10-08 19:11:39,991 - INFO - Draining remaining 0 packets from WRIST...
+2025-10-08 19:11:39,991 - INFO - Drained 0 packets from WRIST
+2025-10-08 19:11:39,992 - INFO - Stopping packet processor for BICEP: 480 processed, 0 remaining
+2025-10-08 19:11:39,992 - INFO - Draining remaining 0 packets from BICEP...
+2025-10-08 19:11:39,992 - INFO - Drained 0 packets from BICEP
+2025-10-08 19:11:40,142 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 19:11:40,142 - INFO - Waiting for B0:B2:1C:5B:69:2E to flush BLE queue...
+2025-10-08 19:11:40,147 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 19:11:40,147 - INFO - Waiting for B0:B2:1C:5B:68:9E to flush BLE queue...
+2025-10-08 19:11:40,149 - INFO - Stopped collection on 30:C6:F7:01:D5:12
+2025-10-08 19:11:40,149 - INFO - Waiting for 30:C6:F7:01:D5:12 to flush BLE queue...
+2025-10-08 19:11:46,149 - INFO - Queue flush complete for B0:B2:1C:5B:69:2E
+2025-10-08 19:11:46,149 - INFO - Queue flush complete for B0:B2:1C:5B:68:9E
+2025-10-08 19:11:46,150 - INFO - Queue flush complete for 30:C6:F7:01:D5:12
+2025-10-08 19:11:46,150 - INFO - Finalizing session data...
+2025-10-08 19:11:46,150 - INFO - Aggregated 34 windows from 3 devices.
+2025-10-08 19:11:46,150 - INFO - All windows sorted chronologically by absolute timestamp.
+2025-10-08 19:11:46,150 - INFO - Session finalized: 34 windows, 6000 samples (all chronologically sorted)
+2025-10-08 19:11:47,368 - INFO - Session saved to MongoDB with ID: 68e62ad2416b3e9b57dca4d5
+2025-10-08 19:11:59,590 - INFO - MongoDB connection closed
