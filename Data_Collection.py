@@ -667,7 +667,16 @@ class DataCollectionMenu:
         return False
     
     async def send_stop_command(self, client: BleakClient, address: str, max_retries: int = 3):
-        """Send stop command to a device with retry logic"""
+        """Send stop command to a device with retry logic
+        
+        Note: The Arduino firmware will flush its BLE queue before fully stopping,
+        which can take several seconds. We give it time to complete this flush.
+        """
+        # Check if client is still connected
+        if not client.is_connected:
+            logger.warning(f"Device {address} already disconnected, skipping stop command")
+            return False
+            
         for attempt in range(max_retries):
             try:
                 command = bytes([CMD_STOP])
@@ -676,6 +685,13 @@ class DataCollectionMenu:
                     timeout=5.0
                 )
                 logger.info(f"Stopped collection on {address}")
+                
+                # Wait for Arduino to flush its BLE queue (up to 5 seconds)
+                # The Arduino will transmit all queued packets before fully stopping
+                logger.info(f"Waiting for {address} to flush BLE queue...")
+                await asyncio.sleep(6.0)  # Give 6 seconds for 5 second flush timeout + buffer
+                logger.info(f"Queue flush complete for {address}")
+                
                 return True
             except asyncio.TimeoutError:
                 logger.warning(f"Timeout stopping {address} (attempt {attempt + 1}/{max_retries})")
@@ -1162,16 +1178,23 @@ class DataCollectionMenu:
             # Wait for tasks to complete cancellation
             await asyncio.gather(*notification_tasks, return_exceptions=True)
             
-            # Send stop command to all devices concurrently
-            print("Stopping data collection...")
+            # Send stop command to all devices sequentially to allow proper queue flushing
+            # Note: Each device will flush its BLE queue before stopping, which takes ~5-6 seconds
+            print("\nStopping data collection...")
+            print("Note: Devices will flush their BLE queues to prevent data loss.")
+            print("This may take up to 6 seconds per device...\n")
+            
             stop_tasks = []
             for address, client in self.connected_clients.items():
+                node_id = self.extract_node_id_from_name_by_address(address)
+                node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+                print(f"Stopping {node_name}...")
                 task = self.send_stop_command(client, address)
                 stop_tasks.append(task)
             
             stop_results = await asyncio.gather(*stop_tasks, return_exceptions=True)
             successful_stops = sum(1 for result in stop_results if result is True)
-            print(f"[OK] Stopped collection on {successful_stops}/{len(self.connected_clients)} devices")
+            print(f"\n[OK] Stopped collection on {successful_stops}/{len(self.connected_clients)} devices")
             
             # Calculate session duration
             session_end_time = datetime.now()
@@ -1277,24 +1300,77 @@ class DataCollectionMenu:
             device_buffers[address]['stats']['total_samples'] += 1
             
             # Calculate synchronized timestamp in milliseconds
-            # packet.timestamp is in 10ms ticks from device start
+            # packet.timestamp is in 10ms ticks from device start (wraps at 65536)
             # We need to calculate actual timestamp based on sync reference
             buffer = device_buffers[address]
             
-            if buffer['first_packet_timestamp'] is None:
-                # Store first packet timestamp as reference
+            # === ROBUST TIMESTAMP HANDLING ===
+            
+            # Stage 1: Wait for initial sync to complete
+            if buffer['sync_timestamp_ms'] is None:
+                logger.debug(f"Skipping packet from {address} - waiting for time sync")
+                return
+            
+            # Stage 2: Initialize reference on first packet after sync
+            if buffer.get('first_packet_timestamp') is None:
                 buffer['first_packet_timestamp'] = packet.timestamp
+                buffer['last_sync_timestamp_ms'] = buffer['sync_timestamp_ms']
+                buffer['last_packet_timestamp'] = packet.timestamp
+                buffer['wraparound_count'] = 0  # Track number of wraparounds
+                buffer['samples_received'] = 0  # Track total samples for validation
+                logger.info(f"First packet from {address}: timestamp={packet.timestamp} ticks")
             
-            # Calculate elapsed time since first packet (in milliseconds)
-            elapsed_ticks = packet.timestamp - buffer['first_packet_timestamp']
-            elapsed_ms = elapsed_ticks * 10  # Convert 10ms ticks to milliseconds
+            # Stage 3: Detect and handle timestamp issues
+            last_timestamp = buffer.get('last_packet_timestamp', packet.timestamp)
+            wraparound_count = buffer.get('wraparound_count', 0)
+            samples_received = buffer.get('samples_received', 0)
+            samples_received += 1
+            buffer['samples_received'] = samples_received
             
-            # Calculate synchronized timestamp
-            if buffer['sync_timestamp_ms'] is not None:
-                synced_timestamp_ms = buffer['sync_timestamp_ms'] + elapsed_ms
-            else:
-                # Fallback if sync wasn't performed (shouldn't happen)
-                synced_timestamp_ms = packet.timestamp * 10
+            # 3a. Detect wraparound (timestamp went backwards significantly)
+            # Must be a large backward jump (>60s) AND not in the first 200 samples
+            # This prevents false wraparound detection from startup timing issues
+            if packet.timestamp < last_timestamp - 6000 and samples_received > 200:
+                wraparound_count += 1
+                buffer['wraparound_count'] = wraparound_count
+                logger.info(f"Wraparound detected on {address}: {last_timestamp} → {packet.timestamp} (count: {wraparound_count})")
+            
+            # 3b. Detect backward jump (out-of-order packet, NOT wraparound)
+            elif packet.timestamp < last_timestamp:
+                logger.debug(f"Out-of-order packet on {address}: {last_timestamp} → {packet.timestamp} (samples: {samples_received})")
+                # Don't increment wraparound_count - this is just BLE reordering
+            
+            # 3c. Detect re-sync (timestamp reset to near-zero after being far ahead)
+            # This should NOT happen during normal operation anymore
+            elif packet.timestamp < 100 and last_timestamp > 10000 and samples_received > 1000:
+                logger.warning(f"Unexpected re-sync detected on {address}: {last_timestamp} → {packet.timestamp}")
+                # This might indicate a device restart - log but continue
+                # Don't reset counters to preserve data continuity
+            
+            # Stage 4: Calculate absolute timestamp with wraparound handling
+            first_ts = buffer['first_packet_timestamp']
+            
+            # Add wraparound compensation (65536 ticks per wraparound)
+            compensated_timestamp = packet.timestamp + (wraparound_count * 65536)
+            compensated_first = first_ts  # First timestamp is always before any wraparound
+            
+            # Calculate elapsed ticks from first packet
+            elapsed_ticks = compensated_timestamp - compensated_first
+            
+            # Handle case where current packet is BEFORE first packet (out-of-order)
+            if elapsed_ticks < 0:
+                logger.warning(f"Packet timestamp {packet.timestamp} is before first packet {first_ts} on {address}")
+                elapsed_ticks = 0  # Clamp to 0
+            
+            # Convert to milliseconds (each tick = 10ms)
+            elapsed_ms = elapsed_ticks * 10
+            
+            # Calculate absolute timestamp from session start
+            sync_base = buffer['last_sync_timestamp_ms']
+            synced_timestamp_ms = sync_base + elapsed_ms
+            
+            # Stage 5: Store packet timestamp for next comparison
+            buffer['last_packet_timestamp'] = packet.timestamp
             
             # Convert to QuaternionSample with synchronized timestamp
             sample = QuaternionSample(
@@ -1327,20 +1403,24 @@ class DataCollectionMenu:
             if (buffer['samples_since_last_short'] >= self.SHORT_WINDOW_STEP and
                 len(buffer['short_window_buffer']) >= self.SHORT_WINDOW_SIZE):
                 
-                # Extract features from short window
+                # CRITICAL: Sort window samples by timestamp to fix zigzag pattern
+                # BLE packet delivery is not guaranteed to be in-order
+                sorted_window_buffer = sorted(buffer['short_window_buffer'], key=lambda s: s.timestamp)
+                
+                # Extract features from short window (using sorted samples)
                 features = extract_window_features(
-                    buffer['short_window_buffer'],
+                    sorted_window_buffer,
                     window_type=0,  # short
                     node_id=packet.node_id,
                     window_id=buffer['short_window_id']
                 )
                 
-                # Calculate window timing information
-                window_start_timestamp_ms = buffer['short_window_buffer'][0].timestamp
-                window_end_timestamp_ms = buffer['short_window_buffer'][-1].timestamp
+                # Calculate window timing information (using sorted samples)
+                window_start_timestamp_ms = sorted_window_buffer[0].timestamp
+                window_end_timestamp_ms = sorted_window_buffer[-1].timestamp
                 window_duration_ms = window_end_timestamp_ms - window_start_timestamp_ms
                 
-                # Store window with features and samples
+                # Store window with features and samples (sorted by timestamp)
                 window_data = {
                     'window_type': 'short',
                     'window_id': buffer['short_window_id'],
@@ -1364,7 +1444,7 @@ class DataCollectionMenu:
                     },
                     'samples': [{'timestamp_ms': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
                                 'qy': s.qy, 'qz': s.qz} 
-                               for s in buffer['short_window_buffer']]
+                               for s in sorted_window_buffer]
                 }
                 
                 buffer['windows'].append(window_data)
@@ -1380,20 +1460,24 @@ class DataCollectionMenu:
             if (buffer['samples_since_last_long'] >= self.LONG_WINDOW_STEP and
                 len(buffer['long_window_buffer']) >= self.LONG_WINDOW_SIZE):
                 
-                # Extract features from long window
+                # CRITICAL: Sort window samples by timestamp to fix zigzag pattern
+                # BLE packet delivery is not guaranteed to be in-order
+                sorted_window_buffer = sorted(buffer['long_window_buffer'], key=lambda s: s.timestamp)
+                
+                # Extract features from long window (using sorted samples)
                 features = extract_window_features(
-                    buffer['long_window_buffer'],
+                    sorted_window_buffer,
                     window_type=1,  # long
                     node_id=packet.node_id,
                     window_id=buffer['long_window_id']
                 )
                 
-                # Calculate window timing information
-                window_start_timestamp_ms = buffer['long_window_buffer'][0].timestamp
-                window_end_timestamp_ms = buffer['long_window_buffer'][-1].timestamp
+                # Calculate window timing information (using sorted samples)
+                window_start_timestamp_ms = sorted_window_buffer[0].timestamp
+                window_end_timestamp_ms = sorted_window_buffer[-1].timestamp
                 window_duration_ms = window_end_timestamp_ms - window_start_timestamp_ms
                 
-                # Store window with features and samples
+                # Store window with features and samples (sorted by timestamp)
                 window_data = {
                     'window_type': 'long',
                     'window_id': buffer['long_window_id'],
@@ -1417,7 +1501,7 @@ class DataCollectionMenu:
                     },
                     'samples': [{'timestamp_ms': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
                                 'qy': s.qy, 'qz': s.qz} 
-                               for s in buffer['long_window_buffer']]
+                               for s in sorted_window_buffer]
                 }
                 
                 buffer['windows'].append(window_data)
