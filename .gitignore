@@ -1,1 +1,9 @@
+# Ignore Arduino files
+*.ino
+
+# Ignore environment files
+*.env
 .env
+
+# Ignore collected data folder
+collected_data/

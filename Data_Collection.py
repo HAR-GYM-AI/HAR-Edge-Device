@@ -63,9 +63,9 @@ class NodePlacement(IntEnum):
 class ExerciseType(IntEnum):
     """Exercise type identifiers"""
     BICEP_CURL = 1
-    SHOULDER_PRESS = 2
-    LATERAL_RAISE = 3
-    TRICEP_EXTENSION = 4
+    BENCH_PRESS = 2
+    SQUAT = 3
+    PULL_UP = 4
 
 # BLE UUIDs (matching Arduino)
 SERVICE_UUID = "19B10000-E8F2-537E-4F6C-D104768A1214"
@@ -449,10 +449,12 @@ class DataCollectionMenu:
         # Handle different packet types
         if len(data) == 1:
             # Single byte - might be partial packet or identification
+            logger.debug(f"Ignoring single byte packet: 0x{data[0]:02X}")
             return None
             
         elif len(data) == 3 and data[0] == 0xAA:
             # ACK/NACK packet
+            logger.debug("Ignoring ACK/NACK packet")
             return None
             
         elif len(data) >= 6 and data[0] == 0xFF:
@@ -462,6 +464,8 @@ class DataCollectionMenu:
             is_running = bool(data[2])
             is_calibrated = bool(data[3])
             timestamp = (data[4] << 8) | data[5]  # Combine two bytes (big-endian)
+            
+            logger.info(f"Parsed heartbeat response: node_id={node_id}, running={is_running}, calibrated={is_calibrated}")
             
             return {
                 'response_id': response_id,
@@ -475,10 +479,12 @@ class DataCollectionMenu:
             
         elif len(data) >= 20 and data[0] == 0xFE:
             # Node identification packet
+            logger.debug("Ignoring node identification packet")
             return None
             
         else:
             # Unknown packet format
+            logger.warning(f"Unknown packet format: length={len(data)}, first_byte=0x{data[0]:02X if len(data) > 0 else 0:02X}")
             return None
     
     def display_heartbeat_response(self, response: dict):
@@ -488,8 +494,8 @@ class DataCollectionMenu:
         print("═" * 50)
         
         # Status indicators
-        running_status = "✓ YES" if response['is_running'] else "✗ NO"
-        cal_status = "✓ YES" if response['is_calibrated'] else "✗ NO"
+        running_status = "[YES]" if response['is_running'] else "[NO]"
+        cal_status = "[YES]" if response['is_calibrated'] else "[NO]"
         
         print(f"\nNode Information:")
         print(f"  ID:           {response['node_id']} ({response['node_name']})")
@@ -503,7 +509,7 @@ class DataCollectionMenu:
         print("═" * 50 + "\n")
     
     async def scan_and_connect_all_devices(self):
-        """Scan for and connect to all HAR sensor nodes concurrently"""
+        """Scan for and connect to all HAR sensor nodes sequentially"""
         print("Scanning for HAR sensor nodes...")
         
         devices = await BleakScanner.discover(timeout=5.0)
@@ -515,27 +521,46 @@ class DataCollectionMenu:
         
         print(f"Found {len(har_devices)} HAR device(s):")
         for device in har_devices:
-            print(f"  • {device.name} ({device.address})")
+            print(f" - {device.name} ({device.address})")
         print()
         
-        # Connect to each device concurrently
-        connection_tasks = []
-        for device in har_devices:
-            task = self.connect_single_device(device)
-            connection_tasks.append(task)
-        
-        # Wait for all connections to complete
-        results = await asyncio.gather(*connection_tasks, return_exceptions=True)
-        
+        # Connect to each device sequentially (BLE connections should not be done concurrently)
         successful_connections = 0
-        for device, result in zip(har_devices, results):
-            if isinstance(result, Exception):
-                print(f"✗ Failed to connect to {device.name}: {result}")
-            else:
-                successful_connections += 1
+        for device in har_devices:
+            try:
+                result = await self.connect_single_device(device)
+                if result:
+                    successful_connections += 1
+                # Add delay between connections to avoid BLE stack issues
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                print(f"[FAILED] Failed to connect to {device.name}: {e}")
         
         print(f"\nConnected to {successful_connections}/{len(har_devices)} devices")
         print()
+    
+    def extract_node_id_from_name(self, device_name: str) -> Optional[int]:
+        """Extract node ID from device name (e.g., 'HAR_WRIST' -> 0)"""
+        if not device_name or not device_name.startswith("HAR_"):
+            return None
+        
+        # Extract placement name from device name (e.g., "HAR_WRIST" -> "WRIST")
+        parts = device_name.split("_")
+        if len(parts) < 2:
+            return None
+        
+        placement_name = parts[1].upper()
+        
+        # Map placement name to node ID
+        name_to_id = {name: node_id for node_id, name in NODE_NAMES.items()}
+        return name_to_id.get(placement_name)
+    
+    def extract_node_id_from_name_by_address(self, address: str) -> Optional[int]:
+        """Extract node ID from device name by address"""
+        # Use the stored mapping
+        if hasattr(self, 'address_to_node_id'):
+            return self.address_to_node_id.get(address)
+        return None
     
     async def connect_single_device(self, device):
         """Connect to a single BLE device"""
@@ -545,11 +570,11 @@ class DataCollectionMenu:
             await client.connect()
             
             if client.is_connected:
-                print(f"✓ Connected to {device.name}")
+                print(f"Connected to {device.name}")
                 
                 self.connected_clients[device.address] = client
                 
-                # Initialize node status
+                # Extract node ID from device name and store mapping
                 node_id = self.extract_node_id_from_name(device.name)
                 if node_id is not None:
                     self.node_statuses[node_id] = NodeStatus(
@@ -559,6 +584,10 @@ class DataCollectionMenu:
                         timestamp=0,
                         connected=True
                     )
+                    # Store address -> node_id mapping for later use
+                    if not hasattr(self, 'address_to_node_id'):
+                        self.address_to_node_id = {}
+                    self.address_to_node_id[device.address] = node_id
                 
                 # Give Arduino time to initialize
                 await asyncio.sleep(0.5)
@@ -569,17 +598,6 @@ class DataCollectionMenu:
         except Exception as e:
             raise e
     
-    def extract_node_id_from_name_by_address(self, address: str) -> Optional[int]:
-        """Extract node ID from device name by address"""
-        for addr, client in self.connected_clients.items():
-            if addr == address:
-                # Try to get device name from client if available
-                # For now, we'll use the stored node status
-                for node_id, status in self.node_statuses.items():
-                    if status.connected:  # This is approximate, but works for now
-                        return node_id
-        return None
-    
     async def start_device_notifications(self, address: str, client: BleakClient, device_buffers: Dict[str, Dict[str, Any]]):
         """Start notification handlers for a single device"""
         try:
@@ -589,7 +607,7 @@ class DataCollectionMenu:
             
             # Subscribe to orientation characteristic only
             await client.start_notify(ORIENTATION_CHAR_UUID, notification_handler)
-            print(f"✓ Started notifications for {address}")
+            print(f"Started notifications for {address}")
             
             # Keep the handler running (this will run indefinitely until cancelled)
             while True:
@@ -599,7 +617,32 @@ class DataCollectionMenu:
             # Expected when stopping collection
             pass
         except Exception as e:
-            print(f"✗ Error in notification handler for {address}: {e}")
+            print(f"Error in notification handler for {address}: {e}")
+    
+    async def send_time_sync_command(self, client: BleakClient, address: str, sync_timestamp_ms: int, max_retries: int = 3):
+        """Send time synchronization command to a device"""
+        for attempt in range(max_retries):
+            try:
+                # Build time sync command: CMD_TIME_SYNC (1 byte) + timestamp (4 bytes, little-endian)
+                command = bytearray([CMD_TIME_SYNC])
+                command.extend(sync_timestamp_ms.to_bytes(4, byteorder='little'))
+                
+                await asyncio.wait_for(
+                    client.write_gatt_char(CONTROL_CHAR_UUID, command, response=True),
+                    timeout=5.0
+                )
+                logger.info(f"Time synced on {address} to {sync_timestamp_ms}ms")
+                return True
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout syncing time on {address} (attempt {attempt + 1}/{max_retries})")
+            except Exception as e:
+                logger.error(f"Error syncing time on {address} (attempt {attempt + 1}/{max_retries}): {e}")
+            
+            if attempt < max_retries - 1:
+                await asyncio.sleep(0.5)  # Wait before retry
+        
+        logger.error(f"Failed to sync time on {address} after {max_retries} attempts")
+        return False
     
     async def send_start_command(self, client: BleakClient, address: str, max_retries: int = 3):
         """Send start command to a device with retry logic"""
@@ -676,10 +719,12 @@ class DataCollectionMenu:
         session_data['session_metadata']['long_windows'] = total_long_windows
     
     async def monitor_connections(self, device_buffers: Dict[str, Dict[str, Any]]):
-        """Monitor BLE connection health during recording"""
+        """Monitor BLE connection health and perform periodic time re-sync during recording"""
         try:
+            sync_counter = 0
             while True:
                 await asyncio.sleep(10.0)  # Check every 10 seconds
+                sync_counter += 1
                 
                 disconnected_devices = []
                 for address, client in self.connected_clients.items():
@@ -697,6 +742,27 @@ class DataCollectionMenu:
                     logger.warning(f"Disconnected devices detected: {disconnected_devices}")
                     for address in disconnected_devices:
                         device_buffers[address]['stats']['connection_dropped'] = True
+                
+                # Periodic time re-sync every 60 seconds to handle clock drift
+                if sync_counter >= 6:  # 6 * 10s = 60 seconds
+                    import time
+                    # Calculate elapsed time since session start (in ms)
+                    current_time = datetime.now()
+                    if 'session_absolute_start_ms' in list(device_buffers.values())[0]:
+                        session_start_ms = list(device_buffers.values())[0]['session_absolute_start_ms']
+                        current_ms = int(current_time.timestamp() * 1000)
+                        sync_timestamp_ms = current_ms - session_start_ms  # Relative time
+                        logger.info(f"Performing periodic time re-sync: {sync_timestamp_ms}ms (relative)")
+                        
+                        # Re-sync all connected devices
+                        for address, client in self.connected_clients.items():
+                            if client.is_connected:
+                                try:
+                                    await self.send_time_sync_command(client, address, sync_timestamp_ms)
+                                except Exception as e:
+                                    logger.error(f"Failed to re-sync time on {address}: {e}")
+                    
+                    sync_counter = 0  # Reset counter
                 
         except asyncio.CancelledError:
             # Expected when stopping monitoring
@@ -722,18 +788,18 @@ class DataCollectionMenu:
         results = await asyncio.gather(*status_tasks, return_exceptions=True)
         
         successful_requests = sum(1 for result in results if not isinstance(result, Exception))
-        print(f"✓ Status received from {successful_requests}/{len(self.connected_clients)} devices")
+        print(f"[OK] Status received from {successful_requests}/{len(self.connected_clients)} devices")
     
     async def request_single_status(self, address: str, client: BleakClient):
         """Request status from a single device"""
         try:
             success = await self.send_heartbeat_request(client)
             if success:
-                print(f"✓ Status received from {address}")
+                print(f"[OK] Status received from {address}")
             else:
-                print(f"✗ Failed to get status from {address}")
+                print(f"[FAILED] Failed to get status from {address}")
         except Exception as e:
-            print(f"✗ Error requesting status from {address}: {e}")
+            print(f"[ERROR] Error requesting status from {address}: {e}")
     
     async def scan_for_device(self):
         """Scan for HAR sensor nodes"""
@@ -780,23 +846,29 @@ class DataCollectionMenu:
         
         def notification_handler(sender, data):
             """Handle incoming notification"""
+            nonlocal heartbeat_response
+            # Log raw data for debugging
+            logger.debug(f"Received notification: {data.hex()}")
+            
             parsed = self.parse_heartbeat_response(data)
             if parsed:  # Only count valid heartbeat responses
-                nonlocal heartbeat_response
                 heartbeat_response = parsed
                 response_received.set()
         
-        # Subscribe to notifications
-        await client.start_notify(CONTROL_CHAR_UUID, notification_handler)
-        
         try:
+            # Subscribe to notifications BEFORE sending the command
+            await client.start_notify(CONTROL_CHAR_UUID, notification_handler)
+            
+            # Small delay to ensure notification handler is ready
+            await asyncio.sleep(0.1)
+            
             # Send heartbeat command
             await client.write_gatt_char(CONTROL_CHAR_UUID, command, response=True)
             print("Heartbeat request sent")
             
-            # Wait for response (timeout after 3 seconds)
+            # Wait for response (increased timeout to 5 seconds for BLE queue processing)
             try:
-                await asyncio.wait_for(response_received.wait(), timeout=3.0)
+                await asyncio.wait_for(response_received.wait(), timeout=5.0)
                 
                 if heartbeat_response:
                     self.display_heartbeat_response(heartbeat_response)
@@ -818,11 +890,15 @@ class DataCollectionMenu:
                     
             except asyncio.TimeoutError:
                 print("Timeout waiting for response")
+                logger.warning("Heartbeat timeout - no response received within 5 seconds")
                 return False
                 
         finally:
             # Unsubscribe from notifications
-            await client.stop_notify(CONTROL_CHAR_UUID)
+            try:
+                await client.stop_notify(CONTROL_CHAR_UUID)
+            except Exception as e:
+                logger.error(f"Error unsubscribing from notifications: {e}")
     
     async def run(self):
         """Main menu loop"""
@@ -891,9 +967,9 @@ class DataCollectionMenu:
             for address, client in self.connected_clients.items():
                 try:
                     await client.disconnect()
-                    print(f"✓ Disconnected from {address}")
+                    print(f"[OK] Disconnected from {address}")
                 except Exception as e:
-                    print(f"✗ Error disconnecting from {address}: {e}")
+                    print(f"[ERROR] Error disconnecting from {address}: {e}")
             self.connected_clients.clear()
             self.node_statuses.clear()
             print("All connections closed")
@@ -945,6 +1021,9 @@ class DataCollectionMenu:
         
         print(f"\nRecording to: {session_filename}")
         
+        # Track session start time for statistics
+        session_start_time = datetime.now()
+        
         # Initialize data collection with per-device buffers
         device_buffers: Dict[str, Dict[str, Any]] = {}  # device_address -> buffer
         session_data = {
@@ -971,33 +1050,77 @@ class DataCollectionMenu:
                 'short_window_id': 0,
                 'long_window_id': 0,
                 'windows': [],  # Extracted windows with features
-                'stats': {'total_packets': 0, 'total_samples': 0, 'short_windows': 0, 'long_windows': 0}
+                'stats': {'total_packets': 0, 'total_samples': 0, 'short_windows': 0, 'long_windows': 0},
+                'sync_timestamp_ms': None,  # RPI reference timestamp (ms)
+                'first_packet_timestamp': None  # First packet timestamp for offset calculation
             }
             session_data['device_windows'][address] = []
             node_id = self.extract_node_id_from_name_by_address(address)
             session_data['session_metadata']['devices'][address] = {
                 'node_id': node_id,
-                'node_name': NODE_NAMES.get(node_id, "UNKNOWN")
+                'node_name': NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
             }
+        
+        # Task list for cleanup
+        notification_tasks = []
         
         try:
             # Start concurrent notification handlers and connection monitoring
             print("Starting concurrent data collection...")
-            notification_tasks = []
             
             for address, client in self.connected_clients.items():
-                task = self.start_device_notifications(address, client, device_buffers)
+                task = asyncio.create_task(
+                    self.start_device_notifications(address, client, device_buffers)
+                )
                 notification_tasks.append(task)
             
             # Add connection monitoring task
-            monitor_task = self.monitor_connections(device_buffers)
+            monitor_task = asyncio.create_task(self.monitor_connections(device_buffers))
             notification_tasks.append(monitor_task)
             
-            # Start all tasks
-            notification_coroutines = [task for task in notification_tasks]
+            # STEP 1: Synchronize timestamps across all devices
+            print("\n" + "=" * 70)
+            print("SYNCHRONIZING DEVICE TIMESTAMPS")
+            print("=" * 70)
             
-            # Send start command to all devices concurrently
-            print("Starting data collection on all devices...")
+            # Use relative timestamp (milliseconds from session start = 0)
+            # This avoids 32-bit integer overflow issues with Unix epoch timestamps
+            sync_timestamp_ms = 0  # Session start is t=0
+            session_absolute_start_ms = int(session_start_time.timestamp() * 1000)
+            
+            print(f"Session start time: {session_start_time.isoformat()}")
+            print(f"Reference timestamp: {sync_timestamp_ms} ms (relative to session start)")
+            print(f"Syncing {len(self.connected_clients)} device(s)...\n")
+            
+            # Send time sync command to all devices
+            sync_tasks = []
+            for address, client in self.connected_clients.items():
+                task = self.send_time_sync_command(client, address, sync_timestamp_ms)
+                sync_tasks.append(task)
+            
+            sync_results = await asyncio.gather(*sync_tasks, return_exceptions=True)
+            successful_syncs = sum(1 for result in sync_results if result is True)
+            
+            if successful_syncs == 0:
+                logger.error("Failed to sync time on any device - aborting session")
+                print("[FAILED] Time synchronization failed on all devices")
+                return
+            
+            print(f"[OK] Time synchronized on {successful_syncs}/{len(self.connected_clients)} devices")
+            
+            # Small delay to ensure sync is processed
+            await asyncio.sleep(0.5)
+            
+            # Store sync timestamp in device buffers for timestamp calculation
+            for address in device_buffers.keys():
+                device_buffers[address]['sync_timestamp_ms'] = sync_timestamp_ms
+                device_buffers[address]['session_absolute_start_ms'] = session_absolute_start_ms
+            
+            # STEP 2: Start data collection on all devices
+            print("\n" + "=" * 70)
+            print("STARTING DATA COLLECTION")
+            print("=" * 70)
+            
             start_tasks = []
             for address, client in self.connected_clients.items():
                 task = self.send_start_command(client, address)
@@ -1005,7 +1128,7 @@ class DataCollectionMenu:
             
             start_results = await asyncio.gather(*start_tasks, return_exceptions=True)
             successful_starts = sum(1 for result in start_results if result is True)
-            print(f"✓ Started collection on {successful_starts}/{len(self.connected_clients)} devices")
+            print(f"[OK] Started collection on {successful_starts}/{len(self.connected_clients)} devices")
             
             if successful_starts == 0:
                 logger.error("Failed to start collection on any device")
@@ -1014,20 +1137,30 @@ class DataCollectionMenu:
             # Collect data until user presses Enter or Ctrl+C
             print("\nCollecting data... (Press Enter to stop)")
             
-            # Run notification handlers concurrently with input monitoring
-            collection_task = asyncio.gather(*notification_coroutines, return_exceptions=True)
+            # Run input monitoring in executor (run_in_executor returns a Future, not a coroutine)
             input_task = asyncio.get_event_loop().run_in_executor(None, input, "")
             
-            done, pending = await asyncio.wait(
-                [collection_task, input_task], 
-                return_when=asyncio.FIRST_COMPLETED
-            )
-            
-            # Cancel pending tasks
-            for task in pending:
-                task.cancel()
+            # Wait for user input
+            await input_task
             
             print("\nRecording stopped by user")
+            
+        except asyncio.CancelledError:
+            print("\nRecording cancelled")
+        except KeyboardInterrupt:
+            print("\nRecording interrupted")
+        except Exception as e:
+            print(f"Error during recording: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            # Cancel all notification tasks
+            for task in notification_tasks:
+                if not task.done():
+                    task.cancel()
+            
+            # Wait for tasks to complete cancellation
+            await asyncio.gather(*notification_tasks, return_exceptions=True)
             
             # Send stop command to all devices concurrently
             print("Stopping data collection...")
@@ -1038,36 +1171,45 @@ class DataCollectionMenu:
             
             stop_results = await asyncio.gather(*stop_tasks, return_exceptions=True)
             successful_stops = sum(1 for result in stop_results if result is True)
-            print(f"✓ Stopped collection on {successful_stops}/{len(self.connected_clients)} devices")
+            print(f"[OK] Stopped collection on {successful_stops}/{len(self.connected_clients)} devices")
+            
+            # Calculate session duration
+            session_end_time = datetime.now()
+            session_duration = (session_end_time - session_start_time).total_seconds()
             
             # Process and finalize collected data
             await self.finalize_session_data(device_buffers, session_data)
             
             # Display collection statistics
-            self.display_collection_statistics_multi_device(device_buffers)
+            self.display_collection_statistics_multi_device(device_buffers, session_duration)
             
             # Save collected data
-            session_data['session_metadata']['end_time'] = datetime.now().strftime("%Y%m%d_%H%M%S")
+            session_data['session_metadata']['end_time'] = session_end_time.strftime("%Y%m%d_%H%M%S")
+            session_data['session_metadata']['duration_seconds'] = session_duration
+            session_data['session_metadata']['timing_info'] = {
+                'sync_enabled': True,
+                'sync_mode': 'relative',
+                'sync_timestamp_ms': sync_timestamp_ms,
+                'session_absolute_start_ms': session_absolute_start_ms,
+                'session_start_datetime': session_start_time.isoformat(),
+                'notes': 'All device timestamps synchronized using relative time (t=0 at session start) with periodic re-sync every 60 seconds. To get absolute time: session_absolute_start_ms + timestamp_ms'
+            }
             
             with open(session_filename, 'w') as f:
                 json.dump(session_data, f, indent=2)
             
-            print(f"\n✓ Session complete! Data saved to {session_filename}")
+            print(f"\n[SUCCESS] Session complete! Data saved to {session_filename}")
             
-        except Exception as e:
-            print(f"Error during recording: {e}")
-            import traceback
-            traceback.print_exc()
-        finally:
             # Unsubscribe from notifications
             for address, client in self.connected_clients.items():
                 try:
                     await client.stop_notify(ORIENTATION_CHAR_UUID)
-                    print(f"✓ Unsubscribed from {address}")
+                    print(f"[OK] Unsubscribed from {address}")
                 except Exception as e:
-                    print(f"✗ Error unsubscribing from {address}: {e}")
+                    print(f"[ERROR] Error unsubscribing from {address}: {e}")
     
-    def display_collection_statistics_multi_device(self, device_buffers: Dict[str, Dict[str, Any]]):
+    def display_collection_statistics_multi_device(self, device_buffers: Dict[str, Dict[str, Any]], 
+                                                   session_duration: float):
         """Display statistics about collected window data for multiple devices"""
         print(f"\n{'='*70}")
         print("COLLECTION STATISTICS - MULTI DEVICE")
@@ -1090,7 +1232,7 @@ class DataCollectionMenu:
             device_samples = device_stats['total_samples']
             
             node_id = self.extract_node_id_from_name_by_address(address)
-            node_name = NODE_NAMES.get(node_id, "UNKNOWN")
+            node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
             
             print(f"Device: {node_name} ({address})")
             print(f"  Windows: {device_total} total ({device_short} short, {device_long} long)")
@@ -1104,14 +1246,18 @@ class DataCollectionMenu:
             total_samples += device_samples
             total_packets += device_stats['total_packets']
         
+        # Calculate actual data rate
+        data_rate = total_packets / session_duration if session_duration > 0 else 0
+        
         print(f"{'='*70}")
         print("OVERALL STATISTICS")
         print(f"{'='*70}")
         print(f"Devices: {total_devices}")
+        print(f"Session duration: {session_duration:.1f} seconds")
         print(f"Total windows: {total_windows} ({total_short_windows} short, {total_long_windows} long)")
         print(f"Total samples: {total_samples}")
         print(f"Total packets: {total_packets}")
-        print(f"Data rate: ~{total_packets / 1 if total_packets > 0 else 0:.1f} packets/sec")
+        print(f"Data rate: ~{data_rate:.1f} packets/sec")
         print(f"{'='*70}")
     
 
@@ -1130,9 +1276,29 @@ class DataCollectionMenu:
             
             device_buffers[address]['stats']['total_samples'] += 1
             
-            # Convert to QuaternionSample
+            # Calculate synchronized timestamp in milliseconds
+            # packet.timestamp is in 10ms ticks from device start
+            # We need to calculate actual timestamp based on sync reference
+            buffer = device_buffers[address]
+            
+            if buffer['first_packet_timestamp'] is None:
+                # Store first packet timestamp as reference
+                buffer['first_packet_timestamp'] = packet.timestamp
+            
+            # Calculate elapsed time since first packet (in milliseconds)
+            elapsed_ticks = packet.timestamp - buffer['first_packet_timestamp']
+            elapsed_ms = elapsed_ticks * 10  # Convert 10ms ticks to milliseconds
+            
+            # Calculate synchronized timestamp
+            if buffer['sync_timestamp_ms'] is not None:
+                synced_timestamp_ms = buffer['sync_timestamp_ms'] + elapsed_ms
+            else:
+                # Fallback if sync wasn't performed (shouldn't happen)
+                synced_timestamp_ms = packet.timestamp * 10
+            
+            # Convert to QuaternionSample with synchronized timestamp
             sample = QuaternionSample(
-                timestamp=packet.timestamp,
+                timestamp=synced_timestamp_ms,  # Now in absolute milliseconds
                 qw=packet.qw,
                 qx=packet.qx,
                 qy=packet.qy,
@@ -1169,12 +1335,20 @@ class DataCollectionMenu:
                     window_id=buffer['short_window_id']
                 )
                 
+                # Calculate window timing information
+                window_start_timestamp_ms = buffer['short_window_buffer'][0].timestamp
+                window_end_timestamp_ms = buffer['short_window_buffer'][-1].timestamp
+                window_duration_ms = window_end_timestamp_ms - window_start_timestamp_ms
+                
                 # Store window with features and samples
                 window_data = {
                     'window_type': 'short',
                     'window_id': buffer['short_window_id'],
                     'node_id': packet.node_id,
                     'timestamp': datetime.now().isoformat(),
+                    'window_start_ms': window_start_timestamp_ms,  # Synchronized start time
+                    'window_end_ms': window_end_timestamp_ms,      # Synchronized end time
+                    'window_duration_ms': window_duration_ms,      # Actual duration
                     'features': {
                         'qw_mean': features.qw_mean,
                         'qx_mean': features.qx_mean,
@@ -1188,7 +1362,7 @@ class DataCollectionMenu:
                         'dominant_freq': features.dominant_freq,
                         'total_samples': features.total_samples
                     },
-                    'samples': [{'timestamp': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
+                    'samples': [{'timestamp_ms': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
                                 'qy': s.qy, 'qz': s.qz} 
                                for s in buffer['short_window_buffer']]
                 }
@@ -1214,12 +1388,20 @@ class DataCollectionMenu:
                     window_id=buffer['long_window_id']
                 )
                 
+                # Calculate window timing information
+                window_start_timestamp_ms = buffer['long_window_buffer'][0].timestamp
+                window_end_timestamp_ms = buffer['long_window_buffer'][-1].timestamp
+                window_duration_ms = window_end_timestamp_ms - window_start_timestamp_ms
+                
                 # Store window with features and samples
                 window_data = {
                     'window_type': 'long',
                     'window_id': buffer['long_window_id'],
                     'node_id': packet.node_id,
                     'timestamp': datetime.now().isoformat(),
+                    'window_start_ms': window_start_timestamp_ms,  # Synchronized start time
+                    'window_end_ms': window_end_timestamp_ms,      # Synchronized end time
+                    'window_duration_ms': window_duration_ms,      # Actual duration
                     'features': {
                         'qw_mean': features.qw_mean,
                         'qx_mean': features.qx_mean,
@@ -1233,7 +1415,7 @@ class DataCollectionMenu:
                         'dominant_freq': features.dominant_freq,
                         'total_samples': features.total_samples
                     },
-                    'samples': [{'timestamp': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
+                    'samples': [{'timestamp_ms': s.timestamp, 'qw': s.qw, 'qx': s.qx, 
                                 'qy': s.qy, 'qz': s.qz} 
                                for s in buffer['long_window_buffer']]
                 }
@@ -1251,41 +1433,124 @@ class DataCollectionMenu:
             logger.error(f"Error processing orientation data from {address}: {e}")
     
     async def handle_calibration(self):
-        """Handle sensor calibration on all connected devices"""
+        """Handle sensor calibration on all connected devices with proper positioning guidance"""
         print("\n" + "=" * 70)
-        print("SENSOR CALIBRATION")
+        print("SENSOR CALIBRATION - MULTI-NODE SYSTEM")
         print("=" * 70)
-        print("\nKeep sensors stationary during calibration!")
         
         if not self.connected_clients:
-            print("No devices connected")
+            print("\nNo devices connected")
             input("\nPress Enter to continue...")
             return
         
-        confirm = input(f"\nCalibrate {len(self.connected_clients)} device(s)? [y/N]: ").strip().lower()
-        if confirm != 'y':
+        print(f"\nConnected devices: {len(self.connected_clients)}")
+        for address in self.connected_clients.keys():
+            node_id = self.extract_node_id_from_name_by_address(address)
+            node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+            print(f"  • {node_name} ({address})")
+        
+        print("\n" + "─" * 70)
+        print("CALIBRATION PROCEDURE")
+        print("─" * 70)
+        print("""
+This calibration establishes a reference orientation for all sensors.
+All sensors must be oriented in the SAME direction during calibration.
+SENSOR PLACEMENT & ORIENTATION:
+  
+  • WRIST sensor:  On dominant wrist, facing FORWARD (screen up)
+  • BICEP sensor:  On dominant upper arm, facing FORWARD
+  • CHEST sensor:  Center of chest, facing FORWARD
+  • THIGH sensor:  On dominant thigh, facing FORWARD
+
+IMPORTANT:
+  * All sensors must face the SAME direction (forward)
+  * Stand completely still during calibration
+  * Maintain T-pose for entire calibration (~10 seconds)
+  * Keep body upright and balanced
+  * Look straight ahead
+        """)
+        
+        print("─" * 70)
+        
+        # Get confirmation
+        ready = input("\nAre you in the T-pose position and ready? [y/N]: ").strip().lower()
+        if ready != 'y':
             print("Calibration cancelled")
             input("\nPress Enter to continue...")
             return
         
-        print(f"\nSending calibration command to {len(self.connected_clients)} device(s)...")
+        # Countdown
+        print("\nStarting calibration in:")
+        for i in range(3, 0, -1):
+            print(f"  {i}...")
+            await asyncio.sleep(1.0)
         
-        # Send calibration command to all connected devices
+        print("\nCALIBRATING - HOLD POSITION STILL!\n")
+        
+        # Send calibration command to all devices concurrently
+        calibration_tasks = []
         for address, client in self.connected_clients.items():
-            try:
-                command = bytes([CMD_CALIBRATE])
-                await client.write_gatt_char(CONTROL_CHAR_UUID, command, response=True)
-                print(f"✓ Calibration started on {address}")
-                
-                # Give Arduino time to process (calibration takes several seconds)
-                await asyncio.sleep(1.0)
-                
-            except Exception as e:
-                print(f"✗ Error sending to {address}: {e}")
+            task = self.calibrate_single_device(address, client)
+            calibration_tasks.append(task)
         
-        print("\n✓ Calibration initiated on all devices")
-        print("Note: Calibration takes ~10 seconds per device")
-        input("Press Enter to continue...")
+        # Wait for all calibrations to complete
+        results = await asyncio.gather(*calibration_tasks, return_exceptions=True)
+        
+        # Count successes
+        successful_calibrations = sum(1 for result in results if result is True)
+        
+        print("\n" + "=" * 70)
+        if successful_calibrations == len(self.connected_clients):
+            print("CALIBRATION SUCCESSFUL")
+            print(f"  [OK] All {len(self.connected_clients)} devices calibrated successfully")
+        elif successful_calibrations > 0:
+            print("CALIBRATION PARTIALLY SUCCESSFUL")
+            print(f"  [WARN] {successful_calibrations}/{len(self.connected_clients)} devices calibrated")
+        else:
+            print("CALIBRATION FAILED")
+            print("  [FAILED] No devices were calibrated successfully")
+        print("=" * 70)
+        
+        # Update node statuses
+        print("\nUpdating device statuses...")
+        await self.request_all_statuses()
+        
+        input("\nPress Enter to continue...")
+    
+    async def calibrate_single_device(self, address: str, client: BleakClient, timeout: float = 12.0):
+        """Calibrate a single device with timeout"""
+        node_id = self.extract_node_id_from_name_by_address(address)
+        node_name = NODE_NAMES.get(node_id, "UNKNOWN") if node_id is not None else "UNKNOWN"
+        
+        try:
+            # Send calibration command
+            command = bytes([CMD_CALIBRATE])
+            await asyncio.wait_for(
+                client.write_gatt_char(CONTROL_CHAR_UUID, command, response=True),
+                timeout=5.0
+            )
+            
+            print(f" {node_name}: Calibration started...")
+            
+            # Wait for calibration to complete (Arduino takes ~10 seconds)
+            await asyncio.sleep(timeout)
+            
+            print(f"  [OK] {node_name}: Calibration complete")
+            
+            # Update node status
+            if node_id is not None and node_id in self.node_statuses:
+                self.node_statuses[node_id].is_calibrated = True
+            
+            return True
+            
+        except asyncio.TimeoutError:
+            print(f"{node_name}: Calibration timeout")
+            logger.error(f"Calibration timeout for {address}")
+            return False
+        except Exception as e:
+            print(f"{node_name}: Calibration error - {e}")
+            logger.error(f"Calibration error for {address}: {e}")
+            return False
     
     async def handle_heartbeat(self):
         """Request and display node status from all connected devices"""
@@ -1304,7 +1569,7 @@ class DataCollectionMenu:
         # Request status from all connected devices
         await self.request_all_statuses()
         
-        print("\n✓ Status update complete")
+        print("\nStatus update complete")
         input("Press Enter to continue...")
     
 
@@ -1334,15 +1599,15 @@ class DataCollectionMenu:
             try:
                 command = bytes([CMD_RESET])
                 await client.write_gatt_char(CONTROL_CHAR_UUID, command, response=True)
-                print(f"✓ Reset command sent to {address}")
+                print(f"Reset command sent to {address}")
                 
                 # Give Arduino time to process
                 await asyncio.sleep(0.1)
                 
             except Exception as e:
-                print(f"✗ Error sending to {address}: {e}")
+                print(f"Error sending to {address}: {e}")
         
-        print("\n✓ Reset commands sent to all devices")
+        print("\nReset commands sent to all devices")
         input("Press Enter to continue...")
 
 

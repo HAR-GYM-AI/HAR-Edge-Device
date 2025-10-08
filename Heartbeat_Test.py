@@ -130,8 +130,8 @@ class HeartbeatTester:
         print("═" * 50)
         
         # Status indicators
-        running_status = "✓ YES" if response['is_running'] else "✗ NO"
-        cal_status = "✓ YES" if response['is_calibrated'] else "✗ NO"
+        running_status = "[YES]" if response['is_running'] else "[NO]"
+        cal_status = "[YES]" if response['is_calibrated'] else "[NO]"
         
         print(f"\nNode Information:")
         print(f"  ID:           {response['node_id']} ({response['node_name']})")
@@ -171,7 +171,7 @@ class HeartbeatTester:
         try:
             # Send heartbeat command
             await client.write_gatt_char(CONTROL_CHAR_UUID, command, response=True)
-            print("✓ Heartbeat request sent")
+            print("[OK] Heartbeat request sent")
             
             # Wait for response (timeout after 3 seconds to catch all packets)
             try:
@@ -237,7 +237,7 @@ class HeartbeatTester:
                             else:
                                 print("Invalid choice")
                     
-                    print("\n✓ Test complete")
+                    print("\n[SUCCESS] Test complete")
                 else:
                     print("Failed to connect")
                     

@@ -1,0 +1,198 @@
+2025-10-08 10:39:46,643 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:39:53,663 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:39:53,667 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 10:42:44,975 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:42:51,657 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:42:51,665 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 10:45:12,514 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:45:25,190 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:45:25,202 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 10:46:19,449 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:46:27,693 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 10:46:28,694 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 10:46:29,696 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 10:46:29,696 - ERROR - Failed to stop collection on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 10:46:29,697 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 10:48:31,675 - ERROR - Error starting B0:B2:1C:5B:68:9E (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 10:48:32,677 - ERROR - Error starting B0:B2:1C:5B:68:9E (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 10:48:33,678 - ERROR - Error starting B0:B2:1C:5B:68:9E (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 10:48:33,678 - ERROR - Failed to start collection on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 10:48:33,679 - ERROR - Failed to start collection on any device
+2025-10-08 10:49:25,616 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:49:37,657 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:49:37,666 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 10:51:26,419 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 10:51:36,423 - WARNING - Device B0:B2:1C:5B:68:9E appears disconnected
+2025-10-08 10:51:36,423 - WARNING - Disconnected devices detected: ['B0:B2:1C:5B:68:9E']
+2025-10-08 10:51:40,948 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 10:51:41,950 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 10:51:42,951 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 10:51:42,952 - ERROR - Failed to stop collection on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 11:04:45,191 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:04:50,554 - WARNING - Removing stale partial sample 68 from B0:B2:1C:5B:68:9E
+2025-10-08 11:05:02,742 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:10:51,887 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:10:57,932 - WARNING - Removing stale partial sample 68 from B0:B2:1C:5B:68:9E
+2025-10-08 11:11:05,684 - WARNING - Failed to parse packet from B0:B2:1C:5B:68:9E
+2025-10-08 11:11:05,684 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:13:49,483 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:13:58,162 - WARNING - Failed to parse packet from B0:B2:1C:5B:68:9E
+2025-10-08 11:13:58,163 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:26:51,836 - INFO - Connection established with HAR_BICEP_1
+2025-10-08 11:27:15,601 - INFO - Connection established with HAR_BICEP_1
+2025-10-08 11:27:29,820 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:27:50,685 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:29:16,167 - INFO - Connection established with HAR_BICEP_1
+2025-10-08 11:29:32,816 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:29:46,126 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:34:23,879 - INFO - Connection established with HAR_BICEP_1
+2025-10-08 11:34:40,185 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 11:34:57,834 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:05:02,717 - INFO - Connection established with HAR_BICEP_1
+2025-10-08 12:23:18,695 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:23:25,131 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 12:23:30,055 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 12:23:30,397 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 12:23:34,930 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 12:23:35,612 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:23:35,742 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 12:25:36,522 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:25:43,495 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 12:25:48,372 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 12:25:48,714 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 12:25:53,245 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 12:25:58,122 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 40
+2025-10-08 12:25:58,413 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 10
+2025-10-08 12:25:59,777 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:25:59,940 - ERROR - _GatheringFuture exception was never retrieved
+future: <_GatheringFuture finished exception=CancelledError()>
+asyncio.exceptions.CancelledError
+2025-10-08 12:32:08,262 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:32:08,360 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:32:40,533 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:32:40,630 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:33:05,832 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:33:06,027 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:34:31,886 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:34:38,664 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 12:34:41,393 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:40:59,059 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:41:08,372 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 12:41:08,761 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:57:00,600 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=False
+2025-10-08 12:57:00,693 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=False
+2025-10-08 12:57:27,067 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 12:57:27,120 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=True
+2025-10-08 12:58:00,952 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 12:58:00,999 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 12:58:07,438 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 12:58:07,775 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 12:58:10,825 - WARNING - Device B0:B2:1C:5B:68:9E appears disconnected
+2025-10-08 12:58:10,825 - WARNING - Disconnected devices detected: ['B0:B2:1C:5B:68:9E']
+2025-10-08 12:58:13,090 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 12:58:13,432 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 12:58:17,151 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 1/3): Service Discovery has not been performed yet
+2025-10-08 12:58:17,280 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 12:58:18,154 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 2/3): Service Discovery has not been performed yet
+2025-10-08 12:58:19,155 - ERROR - Error stopping B0:B2:1C:5B:68:9E (attempt 3/3): Service Discovery has not been performed yet
+2025-10-08 12:58:19,156 - ERROR - Failed to stop collection on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 13:03:52,448 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 13:04:44,717 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=False
+2025-10-08 13:05:35,334 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=False
+2025-10-08 13:05:35,386 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=False
+2025-10-08 13:05:41,720 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=False
+2025-10-08 13:05:41,723 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=False
+2025-10-08 13:06:05,412 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 13:06:05,416 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=True
+2025-10-08 13:06:26,380 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 1/3): int too big to convert
+2025-10-08 13:06:26,381 - ERROR - Error syncing time on B0:B2:1C:5B:69:2E (attempt 1/3): int too big to convert
+2025-10-08 13:06:26,882 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 2/3): int too big to convert
+2025-10-08 13:06:26,882 - ERROR - Error syncing time on B0:B2:1C:5B:69:2E (attempt 2/3): int too big to convert
+2025-10-08 13:06:27,383 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 3/3): int too big to convert
+2025-10-08 13:06:27,383 - ERROR - Failed to sync time on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 13:06:27,383 - ERROR - Error syncing time on B0:B2:1C:5B:69:2E (attempt 3/3): int too big to convert
+2025-10-08 13:06:27,383 - ERROR - Failed to sync time on B0:B2:1C:5B:69:2E after 3 attempts
+2025-10-08 13:06:27,384 - ERROR - Failed to sync time on any device - aborting session
+2025-10-08 13:06:27,498 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:06:27,500 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:06:43,359 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 1/3): int too big to convert
+2025-10-08 13:06:43,360 - ERROR - Error syncing time on B0:B2:1C:5B:69:2E (attempt 1/3): int too big to convert
+2025-10-08 13:06:43,860 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 2/3): int too big to convert
+2025-10-08 13:06:43,860 - ERROR - Error syncing time on B0:B2:1C:5B:69:2E (attempt 2/3): int too big to convert
+2025-10-08 13:06:44,361 - ERROR - Error syncing time on B0:B2:1C:5B:68:9E (attempt 3/3): int too big to convert
+2025-10-08 13:06:44,361 - ERROR - Failed to sync time on B0:B2:1C:5B:68:9E after 3 attempts
+2025-10-08 13:06:44,362 - ERROR - Error syncing time on B0:B2:1C:5B:69:2E (attempt 3/3): int too big to convert
+2025-10-08 13:06:44,362 - ERROR - Failed to sync time on B0:B2:1C:5B:69:2E after 3 attempts
+2025-10-08 13:06:44,362 - ERROR - Failed to sync time on any device - aborting session
+2025-10-08 13:06:44,415 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:06:44,460 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:15:21,391 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=False
+2025-10-08 13:15:21,395 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=False
+2025-10-08 13:15:41,038 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 13:15:41,041 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=True
+2025-10-08 13:15:56,398 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 13:15:56,443 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 13:15:57,076 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:15:57,080 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:16:02,832 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 13:16:03,073 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 13:16:07,661 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 13:16:08,003 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 13:16:08,241 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 13:16:08,583 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 13:16:10,287 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:16:10,291 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:19:38,812 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=True
+2025-10-08 13:19:38,816 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 13:19:57,731 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 13:19:57,776 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 13:19:58,410 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:19:58,609 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:20:05,041 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 13:20:05,435 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 13:20:10,842 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 13:20:11,089 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 13:20:11,282 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 13:20:11,626 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 13:20:16,789 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 30
+2025-10-08 13:20:17,185 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 30
+2025-10-08 13:20:19,129 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:20:19,132 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:21:57,478 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=True
+2025-10-08 13:21:57,481 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 13:22:08,888 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 13:22:08,933 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 13:22:09,664 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:22:09,668 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:22:16,152 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 13:22:16,295 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 13:22:21,757 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 20
+2025-10-08 13:22:21,760 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 20
+2025-10-08 13:22:22,102 - INFO - Device B0:B2:1C:5B:69:2E: Extracted long window 5
+2025-10-08 13:22:22,243 - INFO - Device B0:B2:1C:5B:68:9E: Extracted long window 5
+2025-10-08 13:22:24,484 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:22:24,585 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:24:19,265 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=False
+2025-10-08 13:24:19,269 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=False
+2025-10-08 13:24:42,373 - INFO - Parsed heartbeat response: node_id=0, running=True, calibrated=True
+2025-10-08 13:24:42,377 - INFO - Parsed heartbeat response: node_id=1, running=True, calibrated=True
+2025-10-08 13:24:56,026 - INFO - Time synced on B0:B2:1C:5B:69:2E to 0ms
+2025-10-08 13:24:56,073 - INFO - Time synced on B0:B2:1C:5B:68:9E to 0ms
+2025-10-08 13:24:56,706 - INFO - Started collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:24:56,757 - INFO - Started collection on B0:B2:1C:5B:69:2E
+2025-10-08 13:25:03,337 - INFO - Device B0:B2:1C:5B:68:9E: Extracted short window 10
+2025-10-08 13:25:03,340 - INFO - Device B0:B2:1C:5B:69:2E: Extracted short window 10
+2025-10-08 13:25:05,237 - INFO - Stopped collection on B0:B2:1C:5B:68:9E
+2025-10-08 13:25:05,240 - INFO - Stopped collection on B0:B2:1C:5B:69:2E
