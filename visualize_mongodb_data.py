@@ -37,7 +37,12 @@ EXERCISE_NAMES = {
     1: "Bicep Curl",
     2: "Bench Press",
     3: "Squat",
-    4: "Pull Up"
+    4: "Pull Up",
+    # String keys for database compatibility
+    "BICEP_CURL": "Bicep Curl",
+    "BENCH_PRESS": "Bench Press", 
+    "SQUAT": "Squat",
+    "PULL_UP": "Pull Up"
 }
 
 # Node placement names
