@@ -1,0 +1,6 @@
+# Requirements for MongoDB Data Visualization
+pymongo
+python-dotenv
+matplotlib
+numpy
+seaborn
