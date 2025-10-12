@@ -1,7 +1,10 @@
-# Requirements for MongoDB Data Visualization
+# Requirements for MongoDB Data Visualization and ML
 pymongo
 python-dotenv
 matplotlib
 numpy
 seaborn
 scipy
+scikit-learn
+joblib
+pandas
