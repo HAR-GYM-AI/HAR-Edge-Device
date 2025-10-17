@@ -356,6 +356,33 @@ class DataCollectionMenu:
         self.processing_tasks: List[asyncio.Task] = []  # Background processing tasks
         self.packets_dropped: Dict[str, int] = {}  # Track dropped packets per device
         self.packets_received: Dict[str, int] = {}  # Track received packets per device
+
+        # Classification
+        self.classification_mode: bool = False  # stream to ML when true 
+
+    def send_features_to_ml(self, *, node_id: int, node_name: str,
+                            window_type: int, window_id: int,
+                            start_ms: int, end_ms: int,
+                            features: Dict[str, Any]) -> None:
+        
+        """Placeholder function to take data for ML"""
+        return
+    
+    async def handle_live_classification(self):
+        print("\n" + "=" * 70)
+        print("LIVE CLASSIFICATION")
+        print("=" * 70)
+
+        if not self.connected_clients:
+            print("No devices connected")
+            input("\nPress Enter to continue...")
+            return
+        
+        self.classifcation_mode = True
+
+        """Function to record IMU data for classification """
+        return
+        
         
     def clear_screen(self):
         """Clear terminal screen"""
@@ -415,6 +442,7 @@ class DataCollectionMenu:
         print("  [3] Request Status from All Nodes")
         print("  [4] View Current Configuration")
         print("  [5] Reset All Sensor Nodes")
+        print("  [6] Live classification")
         print("  [0] Exit")
         print()
         print("-" * 70)
@@ -1213,6 +1241,9 @@ class DataCollectionMenu:
                 elif choice == '5':
                     # Reset node
                     await self.handle_reset()
+
+                elif choice == '6':
+                    await self.handle_live_classification()
                     
                 elif choice == '0':
                     # Exit
@@ -1964,6 +1995,16 @@ class DataCollectionMenu:
                 }
                 
                 buffer['windows'].append(window_data)
+                if self.classification_mode:
+                    self.send_features_to_ml(
+                    node_id=packet.node_id,
+                    node_name=NODE_NAMES.get(packet.node_id, "UNKNOWN"),
+                    window_type=window_data["window_type"], 
+                    window_id=window_data["window_id"],
+                    start_ms=window_data["window_start_ms"],
+                    end_ms=window_data["window_end_ms"],
+                    features=window_data["features"],
+                    )
                 buffer['short_window_id'] += 1
                 buffer['samples_since_last_short'] = 0
                 buffer['stats']['short_windows'] += 1
@@ -2022,6 +2063,16 @@ class DataCollectionMenu:
                 }
                 
                 buffer['windows'].append(window_data)
+                if self.classification_mode:
+                    self.send_features_to_ml(
+                    node_id=packet.node_id,
+                    node_name=NODE_NAMES.get(packet.node_id, "UNKNOWN"),
+                    window_type=window_data["window_type"],
+                    window_id=window_data["window_id"],
+                    start_ms=window_data["window_start_ms"],
+                    end_ms=window_data["window_end_ms"],
+                    features=window_data["features"],
+                    )
                 buffer['long_window_id'] += 1
                 buffer['samples_since_last_long'] = 0
                 buffer['stats']['long_windows'] += 1
@@ -2210,6 +2261,7 @@ IMPORTANT:
         
         print("\nReset commands sent to all devices")
         input("Press Enter to continue...")
+
 
 
 # MAIN ENTRY POINT
