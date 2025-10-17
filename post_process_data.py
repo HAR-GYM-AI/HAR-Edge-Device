@@ -204,6 +204,33 @@ def extract_enhanced_frequency_features(samples: List[QuaternionSample], samplin
         high_freq_mask = (freqs >= 8.0) & (freqs < 15.0)   # Fast movements
         very_high_mask = (freqs >= 15.0) & (freqs < 25.0)  # Very fast/tremor
 
+        total_energy = np.sum(psd)
+        
+        # Spectral centroid (weighted average frequency)
+        if total_energy > 0:
+            spectral_centroid = float(np.sum(freqs * psd) / total_energy)
+        else:
+            spectral_centroid = 0.0
+        
+        # Spectral rolloff (frequency below which 85% of energy is contained)
+        if total_energy > 0:
+            cumsum_psd = np.cumsum(psd)
+            rolloff_idx = np.where(cumsum_psd >= 0.85 * total_energy)[0]
+            if len(rolloff_idx) > 0:
+                spectral_rolloff = float(freqs[rolloff_idx[0]])
+            else:
+                spectral_rolloff = float(freqs[-1])  # Use highest frequency if 85% not reached
+        else:
+            spectral_rolloff = 0.0
+        
+        # Spectral entropy (measure of signal complexity)
+        if total_energy > 0:
+            # Normalize PSD for entropy calculation
+            psd_norm = psd / total_energy
+            spectral_entropy = float(-np.sum(psd_norm * np.log2(psd_norm + 1e-10)) / np.log2(len(psd)))
+        else:
+            spectral_entropy = 0.0
+
         features = {
             'fft_dominant_freq': dominant_freq,
             'fft_slow_band_energy': float(np.sum(psd[slow_freq_mask])),
@@ -211,10 +238,10 @@ def extract_enhanced_frequency_features(samples: List[QuaternionSample], samplin
             'fft_mid_band_energy': float(np.sum(psd[mid_freq_mask])),
             'fft_high_band_energy': float(np.sum(psd[high_freq_mask])),
             'fft_very_high_energy': float(np.sum(psd[very_high_mask])),
-            'fft_total_energy': float(np.sum(psd)),
-            'fft_spectral_centroid': float(np.sum(freqs * psd) / np.sum(psd)),
-            'fft_spectral_rolloff': float(freqs[np.where(np.cumsum(psd) >= 0.85 * np.sum(psd))[0][0]]),
-            'fft_spectral_entropy': float(-np.sum(psd * np.log2(psd + 1e-10)) / np.log2(len(psd))),
+            'fft_total_energy': float(total_energy),
+            'fft_spectral_centroid': spectral_centroid,
+            'fft_spectral_rolloff': spectral_rolloff,
+            'fft_spectral_entropy': spectral_entropy,
         }
 
         return features

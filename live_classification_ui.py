@@ -24,11 +24,12 @@ import time
 import tkinter as tk
 from tkinter import ttk
 from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from bleak import BleakClient, BleakScanner
 import logging
 from datetime import datetime
 from enum import IntEnum
+import queue as pyqueue
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -216,7 +217,7 @@ class NodeStatus:
 @dataclass
 class LiveSensorBuffer:
     """Buffer for storing recent sensor samples for each device"""
-    samples: List[QuaternionSample]
+    samples: List[QuaternionSample] = field(default_factory=list)
     max_size: int = WINDOW_SIZE
 
     def add_sample(self, sample: QuaternionSample):
@@ -259,30 +260,57 @@ class LiveClassificationController:
         self.packets_dropped: Dict[str, int] = {}  # Track dropped packets per device
         self.packets_received: Dict[str, int] = {}  # Track received packets per device
 
+        # Prediction / UI communication
+        self.prediction_queue: pyqueue.Queue = pyqueue.Queue()
+        self.latest_prediction: Dict[str, Any] = {'label': 'N/A', 'prob': 0.0, 'timestamp': None}
+        # Packet print timers
+        self._last_packet_print_time: Dict[str, float] = {}
+        self._processed_since_print: Dict[str, int] = {}
+        # Connection monitor
+        self._monitor_task: Optional[asyncio.Task] = None
+        self._shutdown = False
+        # Packet logging options
+        self.verbose_packet_logging = True
+        self._last_packet_log_time: Dict[str, float] = {}
+
     def parse_orientation_packet(self, data: bytes) -> Optional[RawQuaternionPacket]:
         """
         Parse compressed quaternion orientation packet from Arduino.
         UPDATED for 14-byte packet (padded to 20 bytes): 4-byte timestamp and quantized quaternions.
         """
-        # BLE packets are 20 bytes, but only first 14 bytes contain data (rest is padding)
+        # BLE packets are expected to be 20 bytes (padded); valid payload is first 14 bytes
         if len(data) != 20:
             return None
 
         try:
-            # Unpack binary data (matching Arduino format)
-            sequence_number, node_id, timestamp = struct.unpack('<III', data[:12])
+            payload = bytes(data[:14])
 
-            # Unpack quantized quaternions (4 floats)
-            qw, qx, qy, qz = struct.unpack('<ffff', data[12:28])
+            # Packet structure: seq(1) + nodeId(1) + timestamp(4) + qw(2) + qx(2) + qy(2) + qz(2)
+            (sequence_number, node_id, timestamp, qw_quant, qx_quant, qy_quant, qz_quant) = \
+                struct.unpack("<BBIhhhh", payload)
+
+            # De-quantize int16 to float range [-1, 1]
+            CONVERSION_FACTOR = 32767.0
+            qw = qw_quant / CONVERSION_FACTOR
+            qx = qx_quant / CONVERSION_FACTOR
+            qy = qy_quant / CONVERSION_FACTOR
+            qz = qz_quant / CONVERSION_FACTOR
+
+            # Basic validation
+            if any(math.isnan(v) or math.isinf(v) for v in (qw, qx, qy, qz)):
+                return None
 
             return RawQuaternionPacket(
                 sequence_number=sequence_number,
                 node_id=node_id,
                 timestamp=timestamp,
-                qw=qw, qx=qx, qy=qy, qz=qz  # Note: Arduino sends qz last
+                qw=qw,
+                qx=qx,
+                qy=qy,
+                qz=qz,
             )
 
-        except struct.error:
+        except (struct.error, ValueError):
             return None
 
     def parse_heartbeat_response(self, data: bytes) -> Optional[dict]:
@@ -323,6 +351,48 @@ class LiveClassificationController:
             }
 
         return None
+
+    async def send_start_command(self, client: BleakClient, address: str, max_retries: int = 3):
+        """Send start command to a device"""
+        for attempt in range(max_retries):
+            try:
+                await client.write_gatt_char(
+                    CONTROL_CHAR_UUID,
+                    bytes([CMD_START])
+                )
+                logger.info(f"Sent start command to {self.device_names.get(address, address)}")
+                return True
+            except Exception as e:
+                logger.warning(f"Start command attempt {attempt + 1} failed for {address}: {e}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(0.5)
+
+        logger.error(f"Failed to start collection on {address} after {max_retries} attempts")
+        return False
+
+    async def send_calibrate_command(self, client: BleakClient, address: str, timeout: float = 8.0) -> bool:
+        """Send calibration command to a device and wait for calibrated flag via heartbeat"""
+        try:
+            await client.write_gatt_char(CONTROL_CHAR_UUID, bytes([CMD_CALIBRATE]))
+            logger.info(f"Sent CALIBRATE to {self.device_names.get(address, address)}")
+
+            # Wait for node status to report calibrated
+            start = time.time()
+            node_id = self.extract_node_id_from_name(self.device_names.get(address, ""))
+            while time.time() - start < timeout:
+                status = None
+                if node_id is not None:
+                    status = self.node_statuses.get(node_id)
+                if status and status.is_calibrated:
+                    logger.info(f"Device {address} reported calibrated")
+                    return True
+                await asyncio.sleep(0.2)
+
+            logger.warning(f"Calibration timeout for {address}")
+            return False
+        except Exception as e:
+            logger.error(f"Error sending calibrate to {address}: {e}")
+            return False
 
     def extract_node_id_from_name(self, device_name: str) -> Optional[int]:
         """Extract node ID from device name (e.g., 'HAR_WRIST' -> 0)"""
@@ -399,8 +469,19 @@ class LiveClassificationController:
             # Start orientation data notifications
             await client.start_notify(
                 ORIENTATION_CHAR_UUID,
-                lambda data, addr=address: asyncio.create_task(self.handle_orientation_notification(addr, data))
+                # Bleak calls notification handlers with (sender, data). Capture address and forward properly.
+                lambda sender, data, addr=address: asyncio.create_task(self.handle_orientation_notification(addr, data))
             )
+
+            # Also subscribe to control/heartbeat notifications if available
+            try:
+                await client.start_notify(
+                    CONTROL_CHAR_UUID,
+                    lambda sender, data, addr=address: asyncio.create_task(self.handle_orientation_notification(addr, data))
+                )
+            except Exception:
+                # Not all firmwares may support notify on control char; ignore
+                pass
 
             logger.info(f"Started notifications for {self.device_names[address]}")
 
@@ -410,9 +491,12 @@ class LiveClassificationController:
     async def handle_orientation_notification(self, address: str, data: bytes):
         """Handle orientation data notification"""
         try:
+            # Ensure we store immutable bytes in the queue (Bleak may provide a bytearray)
+            packet = bytes(data)
+
             # Try to add to queue without blocking
             await asyncio.wait_for(
-                self.packet_queues[address].put(data),
+                self.packet_queues[address].put(packet),
                 timeout=0.1
             )
             self.packets_received[address] += 1
@@ -446,7 +530,31 @@ class LiveClassificationController:
                         timeout=1.0
                     )
 
-                    # Process the packet
+                    # First, check if this is a heartbeat response
+                    hb = self.parse_heartbeat_response(data)
+                    if hb:
+                        node_id = hb.get('node_id', None)
+                        if node_id is None:
+                            # Try to derive from device mapping
+                            node_id = self.extract_node_id_from_name(self.device_names.get(address, ""))
+                        if node_id is not None:
+                            status = self.node_statuses.get(node_id)
+                            if status:
+                                status.is_running = hb.get('is_running', status.is_running)
+                                status.is_calibrated = hb.get('is_calibrated', status.is_calibrated)
+                                status.timestamp = hb.get('timestamp', status.timestamp)
+                                status.connected = True
+                            else:
+                                self.node_statuses[node_id] = NodeStatus(
+                                    node_id=node_id,
+                                    is_running=hb.get('is_running', False),
+                                    is_calibrated=hb.get('is_calibrated', False),
+                                    timestamp=hb.get('timestamp', 0),
+                                    connected=True
+                                )
+                        continue
+
+                    # Otherwise treat as orientation packet
                     packet = self.parse_orientation_packet(data)
                     if packet:
                         sample = QuaternionSample(
@@ -462,6 +570,89 @@ class LiveClassificationController:
                             self.sensor_buffers[address].add_sample(sample)
                             processed_count += 1
 
+                            # Packet logging (print periodic summaries to terminal)
+                            now = time.time()
+                            last_print = self._last_packet_print_time.get(address, 0)
+                            self._processed_since_print[address] = self._processed_since_print.get(address, 0) + 1
+                            if now - last_print >= 1.0:
+                                count = self._processed_since_print.get(address, 0)
+                                node_id = self.extract_node_id_from_name(self.device_names.get(address, ""))
+                                node_name = NODE_NAMES.get(node_id, 'UNKNOWN')
+                                print(f"[{datetime.now().isoformat()}] {node_name} ({address}) - packets: {count} - last_seq={packet.sequence_number} ts={packet.timestamp}")
+                                self._last_packet_print_time[address] = now
+                                self._processed_since_print[address] = 0
+                            # Verbose: print individual packets throttled to ~20Hz per device
+                            if self.verbose_packet_logging:
+                                last_log = self._last_packet_log_time.get(address, 0)
+                                if now - last_log >= 0.05:
+                                    node_id = self.extract_node_id_from_name(self.device_names.get(address, ""))
+                                    node_name = NODE_NAMES.get(node_id, 'UNKNOWN')
+                                    print(f"PKT {node_name} {address} seq={packet.sequence_number} ts={packet.timestamp} qw={packet.qw:.4f} qx={packet.qx:.4f} qy={packet.qy:.4f} qz={packet.qz:.4f}")
+                                    self._last_packet_log_time[address] = now
+
+                            # Perform lightweight inference when buffer has enough data
+                            buffer = self.sensor_buffers[address]
+                            if buffer.has_enough_data():
+                                samples = buffer.get_samples()
+
+                                # Prepare features using post_process_data helpers
+                                try:
+                                    temporal = extract_temporal_features(samples)
+                                    freq = extract_enhanced_frequency_features(samples)
+                                except Exception:
+                                    temporal = {}
+                                    freq = {}
+
+                                # Basic statistical features
+                                try:
+                                    qw_mean, qx_mean, qy_mean, qz_mean = calculate_mean(samples)
+                                    qw_std, qx_std, qy_std, qz_std = calculate_std(samples)
+                                    sma = calculate_sma(samples)
+                                    dominant = calculate_dominant_frequency(samples)
+                                except Exception:
+                                    qw_mean = qx_mean = qy_mean = qz_mean = 0.0
+                                    qw_std = qx_std = qy_std = qz_std = 0.0
+                                    sma = 0.0
+                                    dominant = 0.0
+
+                                merged = {}
+                                merged.update(temporal)
+                                merged.update(freq)
+                                merged.update({
+                                    'qw_mean': qw_mean, 'qx_mean': qx_mean, 'qy_mean': qy_mean, 'qz_mean': qz_mean,
+                                    'qw_std': qw_std, 'qx_std': qx_std, 'qy_std': qy_std, 'qz_std': qz_std,
+                                    'sma': sma, 'dominant_freq': dominant,
+                                })
+
+                                # Run model prediction (best-effort)
+                                try:
+                                    X = pd.DataFrame([merged])
+                                    if hasattr(exercise_model, 'predict_proba'):
+                                        probs = exercise_model.predict_proba(X)
+                                        top_idx = int(np.argmax(probs[0]))
+                                        label = label_encoder.inverse_transform([top_idx])[0] if 'label_encoder' in globals() else str(top_idx)
+                                        prob = float(probs[0][top_idx])
+                                    else:
+                                        pred = exercise_model.predict(X)
+                                        # If label_encoder maps strings, attempt inverse
+                                        try:
+                                            label = label_encoder.inverse_transform(pred)[0]
+                                        except Exception:
+                                            label = str(pred[0])
+                                        prob = 1.0
+
+                                    self.latest_prediction = {'label': label, 'prob': prob, 'timestamp': time.time(), 'source_address': address}
+                                    # Push to UI queue (non-blocking)
+                                    try:
+                                        self.prediction_queue.put_nowait(self.latest_prediction)
+                                    except Exception:
+                                        pass
+                                except Exception as e:
+                                    # Model mismatch or feature error
+                                    logger.debug(f"Prediction error: {e}")
+
+                # end while
+
                 except asyncio.TimeoutError:
                     # No packets in queue, continue
                     continue
@@ -472,24 +663,7 @@ class LiveClassificationController:
             logger.error(f"Error in packet processor for {address}: {e}")
         finally:
             logger.info(f"Packet processor finished for {address}, processed {processed_count} packets")
-
-    async def send_start_command(self, client: BleakClient, address: str, max_retries: int = 3):
-        """Send start command to a device with retry logic"""
-        for attempt in range(max_retries):
-            try:
-                await client.write_gatt_char(
-                    CONTROL_CHAR_UUID,
-                    bytes([CMD_START])
-                )
-                logger.info(f"Sent start command to {self.device_names[address]}")
-                return True
-            except Exception as e:
-                logger.warning(f"Start command attempt {attempt + 1} failed for {address}: {e}")
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(0.5)
-
-        logger.error(f"Failed to start collection on {address} after {max_retries} attempts")
-        return False
+        
 
     async def send_stop_command(self, client: BleakClient, address: str, max_retries: int = 3):
         """Send stop command to a device"""
@@ -538,6 +712,11 @@ class LiveClassificationController:
 
         logger.info("Data collection started on all devices")
 
+        # Start a connection monitor that stops the system if any device disconnects
+        if self._monitor_task is None:
+            loop = asyncio.get_event_loop()
+            self._monitor_task = loop.create_task(self._connection_monitor())
+
     async def stop_data_collection(self):
         """Stop data collection on all devices"""
         logger.info("Stopping data collection...")
@@ -557,6 +736,14 @@ class LiveClassificationController:
 
         # Wait for tasks to finish
         await asyncio.gather(*self.processing_tasks, return_exceptions=True)
+
+        # Stop connection monitor (but do not disconnect BLE clients)
+        if self._monitor_task:
+            try:
+                self._monitor_task.cancel()
+            except Exception:
+                pass
+            self._monitor_task = None
 
         logger.info("Data collection stopped")
 
@@ -581,9 +768,8 @@ class LiveClassificationController:
         try:
             logger.info("Launching tkinter UI...")
             # Launch tkinter_ui.py as a subprocess
-            self.ui_process = subprocess.Popen([
-                sys.executable, 'tkinter_ui.py'
-            ], cwd='.')
+            # We no longer launch a separate UI process; main process contains UI
+            self.ui_process = None
             logger.info("Tkinter UI launched")
         except Exception as e:
             logger.error(f"Failed to launch tkinter UI: {e}")
@@ -615,8 +801,9 @@ class LiveClassificationController:
             # Give UI time to start
             await asyncio.sleep(2)
 
-            # Scan and connect to devices
-            await self.scan_and_connect_devices()
+            # Scan and connect to devices only if not already connected
+            if not self.connected_clients:
+                await self.scan_and_connect_devices()
 
             if not self.connected_clients:
                 logger.error("No devices connected - cannot start live classification")
@@ -625,16 +812,16 @@ class LiveClassificationController:
             # Start data collection
             await self.start_data_collection()
 
-            # Keep running until stopped
+            # Keep running until stopped (stop only stops streaming, not BLE connections)
             while self.running:
                 await asyncio.sleep(1)
 
         except Exception as e:
             logger.error(f"Error in live collection: {e}")
         finally:
+            # Stop streaming but keep BLE connections; full disconnect will be handled by UI shutdown
             await self.stop_data_collection()
-            await self.disconnect_all_devices()
-            self.terminate_ui()
+            logger.info("Live collection stopped (BLE connections retained)")
 
     def start_live_collection(self):
         """Start live collection (called from main thread)"""
@@ -682,6 +869,44 @@ class LiveClassificationUI:
 
         self.setup_ui()
 
+    def populate_available_devices(self, devices: List[object]):
+        """Populate discovered devices into UI widgets so user sees connected-ready state"""
+        # devices are bleak device objects with .name and .address
+        for dev in devices:
+            nid = self.controller.extract_node_id_from_name(dev.name if hasattr(dev, 'name') else '')
+            if nid is None:
+                continue
+            self.controller.device_names[dev.address] = dev.name
+            # Mark as connected in controller (but not yet fully connected clients)
+            self.controller.node_statuses[nid] = NodeStatus(node_id=nid, is_running=False, is_calibrated=False, timestamp=0, connected=True)
+            # Update UI
+            if nid in self.sensor_widgets:
+                self.sensor_widgets[nid]['status'].config(text='Connected', foreground='blue')
+
+    async def _connection_monitor(self):
+        """Monitor BLE client connections and stop the system if any disconnects."""
+        logger.info("Starting connection monitor task")
+        try:
+            while True:
+                for addr, client in list(self.connected_clients.items()):
+                    try:
+                        if not client.is_connected:
+                            logger.error(f"Connection lost: {addr}. Stopping live classification.")
+                            # Signal stop
+                            self.running = False
+                            # Cancel processing tasks
+                            for t in self.processing_tasks:
+                                try:
+                                    t.cancel()
+                                except Exception:
+                                    pass
+                            return
+                    except Exception as e:
+                        logger.error(f"Error checking connection for {addr}: {e}")
+                await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            logger.info("Connection monitor cancelled")
+
     def setup_ui(self):
         """Set up the control UI"""
         frame = ttk.Frame(self.root, padding=20)
@@ -689,34 +914,58 @@ class LiveClassificationUI:
 
         title = ttk.Label(frame, text="HAR Live Classification", font=("Arial", 16, "bold"))
         title.pack(pady=(0, 20))
-
+        # Top status
         self.status_label = ttk.Label(frame, text="Ready to start", font=("Arial", 12))
-        self.status_label.pack(pady=(0, 20))
+        self.status_label.pack(pady=(0, 10))
 
+        # Sensor grid (4 sensors)
+        sensors_frame = ttk.Frame(frame)
+        sensors_frame.pack(pady=(0, 10), fill='x')
+
+        self.sensor_widgets: Dict[int, Dict[str, Any]] = {}
+        for node_id in range(4):
+            col = node_id
+            sub = ttk.Frame(sensors_frame, relief='groove', padding=8)
+            sub.grid(row=0, column=col, padx=5, sticky='nsew')
+            label = ttk.Label(sub, text=NODE_NAMES.get(node_id, f"NODE{node_id}"), font=("Arial", 10, "bold"))
+            label.pack()
+            status = ttk.Label(sub, text="Disconnected", foreground='gray')
+            status.pack()
+            calib_btn = ttk.Button(sub, text="Calibrate", command=(lambda nid=node_id: self.calibrate_node(nid)))
+            calib_btn.pack(pady=(6,0))
+
+            self.sensor_widgets[node_id] = {'frame': sub, 'label': label, 'status': status, 'calib_btn': calib_btn}
+
+        # Control buttons
         button_frame = ttk.Frame(frame)
-        button_frame.pack()
+        button_frame.pack(pady=(6,6))
 
-        self.start_btn = ttk.Button(
-            button_frame,
-            text="Start Live Classification",
-            command=self.start_collection
-        )
-        self.start_btn.pack(side="left", padx=10)
+        self.calibrate_all_btn = ttk.Button(button_frame, text="Calibrate All", command=self.calibrate_all)
+        self.calibrate_all_btn.pack(side="left", padx=6)
 
-        self.stop_btn = ttk.Button(
-            button_frame,
-            text="Stop",
-            command=self.stop_collection,
-            state="disabled"
-        )
-        self.stop_btn.pack(side="left", padx=10)
+        self.start_set_btn = ttk.Button(button_frame, text="Start Set", command=self.start_collection, state='disabled')
+        self.start_set_btn.pack(side="left", padx=6)
+
+        self.stop_btn = ttk.Button(button_frame, text="Stop Set", command=self.stop_collection, state='disabled')
+        self.stop_btn.pack(side="left", padx=6)
+
+        # Prediction display
+        self.pred_label = ttk.Label(frame, text="Prediction: N/A", font=("Arial", 14, "bold"))
+        self.pred_label.pack(pady=(10, 0))
+
+        self.prob_label = ttk.Label(frame, text="Confidence: 0.0", font=("Arial", 12))
+        self.prob_label.pack()
+
+        # Periodic UI update
+        self.root.after(300, self.ui_update_loop)
 
     def start_collection(self):
         """Start live collection"""
-        self.start_btn.config(state="disabled")
-        self.stop_btn.config(state="normal")
+        self.start_set_btn.config(state='disabled')
+        self.stop_btn.config(state='normal')
         self.status_label.config(text="Starting live classification...")
 
+        # Start controller (connects to devices and begins collecting)
         self.controller.start_live_collection()
 
         # Update status after a short delay
@@ -724,14 +973,105 @@ class LiveClassificationUI:
 
     def stop_collection(self):
         """Stop live collection"""
-        self.start_btn.config(state="normal")
-        self.stop_btn.config(state="disabled")
+        self.start_set_btn.config(state='normal')
+        self.stop_btn.config(state='disabled')
         self.status_label.config(text="Stopping...")
 
         self.controller.stop_live_collection()
 
         # Update status after stopping
         self.root.after(2000, lambda: self.status_label.config(text="Stopped"))
+
+    def calibrate_node(self, node_id: int):
+        """Trigger calibration for a single node (async)"""
+        # Find address for node
+        address = None
+        for addr, name in self.controller.device_names.items():
+            nid = self.controller.extract_node_id_from_name(name)
+            if nid == node_id:
+                address = addr
+                break
+        if not address:
+            self.sensor_widgets[node_id]['status'].config(text='Not connected', foreground='gray')
+            return
+
+        # Run calibration in background
+        def do_calib():
+            client = self.controller.connected_clients.get(address)
+            if not client:
+                return
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            ok = loop.run_until_complete(self.controller.send_calibrate_command(client, address))
+            loop.close()
+            # Update UI
+            if ok:
+                self.sensor_widgets[node_id]['status'].config(text='Calibrated', foreground='green')
+            else:
+                self.sensor_widgets[node_id]['status'].config(text='Calibration Failed', foreground='red')
+
+        t = threading.Thread(target=do_calib, daemon=True)
+        t.start()
+
+    def calibrate_all(self):
+        """Calibrate all connected nodes"""
+        self.calibrate_all_btn.config(state='disabled')
+        # Spawn threads for each connected device
+        for addr, client in list(self.controller.connected_clients.items()):
+            name = self.controller.device_names.get(addr, '')
+            nid = self.controller.extract_node_id_from_name(name)
+            if nid is None:
+                continue
+
+            def do_all_calib(a=addr, n=nid):
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                ok = loop.run_until_complete(self.controller.send_calibrate_command(self.controller.connected_clients[a], a))
+                loop.close()
+                if ok:
+                    try:
+                        self.sensor_widgets[n]['status'].config(text='Calibrated', foreground='green')
+                    except Exception:
+                        pass
+
+            threading.Thread(target=do_all_calib, daemon=True).start()
+
+        # Re-enable after a pause
+        self.root.after(5000, lambda: self.calibrate_all_btn.config(state='normal'))
+
+    def ui_update_loop(self):
+        """Periodic UI updates: prediction and sensor statuses"""
+        # Drain prediction queue
+        try:
+            while True:
+                pred = self.controller.prediction_queue.get_nowait()
+                label = pred.get('label', 'N/A')
+                prob = pred.get('prob', 0.0)
+                self.pred_label.config(text=f"Prediction: {label}")
+                self.prob_label.config(text=f"Confidence: {prob:.2f}")
+        except Exception:
+            pass
+
+        # Update sensor statuses from controller.node_statuses
+        for nid, widget in self.sensor_widgets.items():
+            status = self.controller.node_statuses.get(nid)
+            if not status:
+                widget['status'].config(text='Disconnected', foreground='gray')
+            else:
+                if status.is_calibrated:
+                    widget['status'].config(text='Calibrated', foreground='green')
+                elif status.connected:
+                    widget['status'].config(text='Connected', foreground='blue')
+                else:
+                    widget['status'].config(text='Disconnected', foreground='gray')
+
+        # Enable start if four devices are known (they'll be connected when start runs)
+        known_devices = len(self.controller.device_names)
+        if known_devices >= 4:
+            self.start_set_btn.config(state='normal')
+
+        # Repeat
+        self.root.after(300, self.ui_update_loop)
 
     def run(self):
         """Start the UI main loop"""
@@ -749,7 +1089,7 @@ async def scan_and_display_sensors():
         if not har_devices:
             print("No HAR sensor devices found!")
             print("   Make sure your sensors are powered on and in range.")
-            return False
+            return []
 
         print(f"Found {len(har_devices)} HAR device(s):")
         print()
@@ -757,7 +1097,11 @@ async def scan_and_display_sensors():
         for i, device in enumerate(har_devices, 1):
             print(f"   {i}. {device.name}")
             print(f"      Address: {device.address}")
-            print(f"      RSSI: {device.rssi} dBm")
+            rssi = getattr(device, 'rssi', 'N/A')
+            if rssi == 'N/A':
+                print(f"      RSSI: N/A")
+            else:
+                print(f"      RSSI: {rssi} dBm")
             print()
 
         print("Attempting to connect to devices...")
@@ -777,11 +1121,12 @@ async def scan_and_display_sensors():
         print()
         if connected_count == len(har_devices):
             print(f"All {connected_count} sensors are ready!")
-            return True
         else:
             print(f"{connected_count}/{len(har_devices)} sensors are accessible.")
             print("   Some sensors may need to be restarted or moved closer.")
-            return connected_count > 0
+
+        # Return devices list for UI to populate (addresses and names)
+        return har_devices
 
     except Exception as e:
         print(f"Scanning failed: {e}")
@@ -799,10 +1144,10 @@ def main():
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        sensors_ready = loop.run_until_complete(scan_and_display_sensors())
+        devices = loop.run_until_complete(scan_and_display_sensors())
         loop.close()
 
-        if not sensors_ready:
+        if not devices:
             print("\nCannot proceed without accessible sensors.")
             print("   Please check your sensor connections and try again.")
             input("\nPress Enter to exit...")
@@ -822,9 +1167,11 @@ def main():
     # Launch the UI
     try:
         ui = LiveClassificationUI()
+        # Populate discovered devices into UI (shows Ready)
+        ui.populate_available_devices(devices)
         ui.run()
     except Exception as e:
-        print(f"❌ Failed to launch UI: {e}")
+        print(f"Failed to launch UI: {e}")
         input("Press Enter to exit...")
 
 if __name__ == "__main__":
