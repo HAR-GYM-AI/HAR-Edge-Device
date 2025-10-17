@@ -7757,3 +7757,4 @@
 2025-10-12 09:49:58,662 - INFO - Session finalized: 532 windows, 95700 samples (all chronologically sorted)
 2025-10-12 09:50:01,652 - ERROR - Error saving session to MongoDB: BSON document too large (22543139 bytes) - the connected server supports BSON document sizes up to 16793598 bytes.
 2025-10-12 09:50:12,930 - INFO - MongoDB connection closed
+2025-10-17 15:48:33,099 - INFO - Successfully loaded all trained models
