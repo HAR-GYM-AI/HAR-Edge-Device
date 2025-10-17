@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import os
 
 def load_and_flatten_data(file_path):
     """
@@ -30,6 +31,10 @@ def load_and_flatten_data(file_path):
         session_id = session.get('_id', 'UNKNOWN_ID')
         metadata = session.get('session_metadata', {})
         activity = metadata.get('exercise_type', 'UNKNOWN')
+        participant_id = metadata.get('participant_id', 'UNKNOWN')
+        rep_number = metadata.get('rep_number', 'UNKNOWN')
+        target_reps = metadata.get('target_reps', 'UNKNOWN')
+        start_time = metadata.get('start_time', 'UNKNOWN')
         devices_metadata = metadata.get('devices', {})
 
         device_windows = session.get('device_windows', {})
@@ -42,6 +47,10 @@ def load_and_flatten_data(file_path):
                     flattened_data.append({
                         'session_id': session_id,
                         'activity': activity,
+                        'participant_id': participant_id,
+                        'rep_number': rep_number,
+                        'target_reps': target_reps,
+                        'start_time': start_time,
                         'device': device_name,
                         'qx': sample.get('qx'),
                         'qy': sample.get('qy'),
@@ -65,13 +74,18 @@ def load_and_flatten_data(file_path):
     
     return df
 
-def plot_session_time_series(df, session_id):
+def plot_session_time_series(df, session_id, activity, participant, target_reps, start_time, save_path=None):
     """
     Plots the quaternion time-series data for each sensor in a single, specified session.
 
     Args:
         df (pd.DataFrame): The main DataFrame with all sensor data.
         session_id (str): The ID of the session to plot.
+        activity (str): The activity name.
+        participant (str): The participant ID.
+        target_reps (str): The target reps.
+        start_time (str): The start time.
+        save_path (str): Path to save the plot. If None, shows the plot.
     """
     session_df = df[df['session_id'] == session_id].copy()
 
@@ -79,12 +93,11 @@ def plot_session_time_series(df, session_id):
         print(f"\nError: No data found for session_id '{session_id}'. Please choose a valid ID.")
         return
 
-    activity = session_df['activity'].iloc[0]
     devices = sorted(session_df['device'].unique())
     num_devices = len(devices)
 
     fig, axes = plt.subplots(num_devices, 1, figsize=(18, 5 * num_devices), sharex=True)
-    fig.suptitle(f'Time-Series Data for Session: {session_id}\nActivity: {activity}', fontsize=16, y=1.02)
+    fig.suptitle('Time-Series Data for Quaternion Values\n' + f'Participant Id: {participant}\nMovement: {activity}\nTarget Reps: {target_reps}', fontsize=16, y=1.02)
 
     if num_devices == 1:
         axes = [axes] # Make it iterable
@@ -106,10 +119,11 @@ def plot_session_time_series(df, session_id):
     plt.tight_layout()
     
     # Save the figure
-    filename = f"session_{session_id}_time_series.png"
-    plt.savefig(filename)
-    print(f"\nSUCCESS: Time-series plot saved as '{filename}'")
-    plt.show()
+    if save_path:
+        plt.savefig(save_path)
+        print(f"\nSUCCESS: Time-series plot saved as '{save_path}'")
+    else:
+        plt.show()
 
 def plot_quaternion_distributions(df, activity_name):
     """
@@ -144,10 +158,10 @@ def plot_quaternion_distributions(df, activity_name):
     plt.legend(title='Quaternion Axis')
     
     # Save the figure
-    filename = f"activity_{activity_name}_distributions.png"
+    filename = f"images/{activity_name}_distributions.png"
     plt.savefig(filename)
     print(f"SUCCESS: Distribution plot saved as '{filename}'")
-    plt.show()
+    plt.close()  # Close to avoid memory issues
 
 def plot_movement_variance(df):
     """
@@ -190,34 +204,45 @@ def plot_movement_variance(df):
 
 # --- Main execution block ---
 if __name__ == "__main__":
-    json_file = 'mongodb_export.json'
+    json_file = 'mongodb_export_cleaned.json'
     
     # 1. Load and process the data from the JSON file
     main_df = load_and_flatten_data(json_file)
 
     if not main_df.empty:
-        # --- PLOT 1: MOVEMENT VARIANCE ACROSS ALL ACTIVITIES ---
-        print("\n--- Generating Plot 1: Overall Movement Variance ---")
-        print("This plot shows which sensors are most active during each exercise.")
-        plot_movement_variance(main_df)
+        # Create directories
+        os.makedirs('images', exist_ok=True)
+        os.makedirs('images/sessions', exist_ok=True)
+        activities = main_df['activity'].unique()
+        for act in activities:
+            os.makedirs(f'images/sessions/{act}', exist_ok=True)
 
-        # --- PLOT 2: STATISTICAL DISTRIBUTION FOR A SAMPLE ACTIVITY ---
-        print("\n--- Generating Plot 2: Statistical Distribution (Box Plot) ---")
-        # We'll generate this for the first activity found in the data as an example
-        sample_activity = main_df['activity'].unique()[0]
-        print(f"This plot shows the range of motion for each sensor during '{sample_activity}'.")
-        plot_quaternion_distributions(main_df, sample_activity)
+        # --- PLOT DISTRIBUTIONS FOR ALL ACTIVITIES ---
+        print("\n--- Generating Distribution Plots for All Activities ---")
+        for act in activities:
+            print(f"Plotting distribution for {act}")
+            plot_quaternion_distributions(main_df, act)
 
-        # --- PLOT 3: DETAILED TIME-SERIES FOR A SPECIFIC SESSION ---
-        print("\n--- Generating Plot 3: Detailed Session Time-Series ---")
-        # Let the user choose which session to plot
-        all_session_ids = main_df['session_id'].unique()
-        print("Available Session IDs:")
-        for sid in all_session_ids:
-            print(f"- {sid}")
-        
-        # Simple input prompt to choose a session
-        chosen_session = input("\nPlease enter one of the session IDs from the list above to plot its details: ").strip()
-        
-        # Generate the plot for the chosen session
-        plot_session_time_series(main_df, chosen_session)
+        # --- PLOT TIME-SERIES FOR ALL SESSIONS ---
+        print("\n--- Generating Time-Series Plots for All Sessions ---")
+        session_info = main_df[['session_id', 'activity', 'participant_id', 'rep_number', 'target_reps', 'start_time']].drop_duplicates()
+        for _, row in session_info.iterrows():
+            session_id = row['session_id']
+            activity = row['activity']
+            participant = row['participant_id']
+            rep = row['rep_number']
+            target_reps = row['target_reps']
+            start_time = row['start_time']
+            # Format activity: lowercase and replace spaces with underscores
+            activity_formatted = activity.lower().replace(' ', '_')
+            # Format start_time to YYYYMMDD_HHMM
+            try:
+                dt = pd.to_datetime(start_time)
+                formatted_start = dt.strftime('%Y%m%d_%H%M')
+            except:
+                # Fallback: remove spaces, dashes, colons
+                formatted_start = start_time.replace(' ', '_').replace('-', '').replace(':', '')
+            filename = f"participant_{participant}_{activity_formatted}_{target_reps}_{formatted_start}.png"
+            save_path = f"images/sessions/{activity}/{filename}"
+            print(f"Plotting session {session_id} for {activity}")
+            plot_session_time_series(main_df, session_id, activity, participant, target_reps, start_time, save_path=save_path)
