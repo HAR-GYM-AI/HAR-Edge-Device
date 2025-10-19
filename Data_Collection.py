@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 HAR System - Data Collection Script
@@ -664,11 +665,14 @@ class LiveClassificationHandler:
                 # Confidence dropped significantly, be more willing to change
                 should_change = should_change or (exercise != self.current_exercise and confidence > 0.4)
         
-        return should_change
+        return bool(should_change)  # Ensure Python bool is returned
     
     def _process_complete_window(self, window_start: int):
         """Process a complete window with data from all sensors"""
         try:
+            # Start latency tracking
+            processing_start_time = time.time()
+            
             # Combine features from all sensors
             combined_features = {}
             for sensor_features in self.window_buffer[window_start].values():
@@ -680,11 +684,16 @@ class LiveClassificationHandler:
             
             logger.debug(f"Combined features for window {window_start}: {len(combined_features)} features")
             
+            # Track feature combination latency
+            feature_combination_time = time.time()
+            feature_combination_latency = (feature_combination_time - processing_start_time) * 1000
+            
             # 1. Exercise Classification with combined features
             exercise, confidence, scores = self._predict_exercise(combined_features)
             
             # Check if exercise changed using smart detection
             exercise_changed = self._detect_exercise_change(exercise, confidence)
+            exercise_changed = bool(exercise_changed)  # Convert numpy.bool_ to Python bool
             if exercise_changed:
                 old_exercise = self.current_exercise
                 self.current_exercise = exercise
@@ -700,8 +709,12 @@ class LiveClassificationHandler:
                 self.ui.update_classification(exercise, confidence)
                 self.ui.log(f"🏋️ Detected: {exercise} ({confidence*100:.1f}%)")
             
+            # Track exercise classification latency
+            exercise_classification_time = time.time()
+            exercise_classification_latency = (exercise_classification_time - feature_combination_time) * 1000
+            
             # 2. Rep Detection (Window-level) - use combined features
-            reps_in_window = self._predict_window_reps(combined_features)
+            reps_in_window, rep_confidence = self._predict_window_reps_with_confidence(combined_features)
             
             # Update rep tracking
             if reps_in_window > 0:
@@ -721,28 +734,55 @@ class LiveClassificationHandler:
             if self.ui:
                 self.ui.update_window_rep_status(reps_in_window > 0)
             
-            # Store prediction data
+            # Track rep detection latency
+            rep_detection_time = time.time()
+            rep_detection_latency = (rep_detection_time - exercise_classification_time) * 1000
+            
+            # Calculate end-to-end latency
+            processing_end_time = time.time()
+            processing_latency_ms = (processing_end_time - processing_start_time) * 1000
+            
+            # Calculate data collection latency (from first sensor data to processing start)
+            first_sensor_time = min(sensor_features.get('window_start_ms', window_start) 
+                                  for sensor_features in self.window_buffer[window_start].values())
+            data_collection_latency_ms = (processing_start_time * 1000) - first_sensor_time
+            
+            # Store prediction data with enhanced confidence and latency info
             prediction_data = {
-                'timestamp_ms': window_start,
+                'timestamp_ms': int(window_start),
                 'exercise': exercise,
                 'confidence': float(confidence),
                 'scores': {k: float(v) for k, v in scores.items()},
                 'reps_detected': int(reps_in_window),
+                'rep_confidence': rep_confidence,
                 'sensor_count': len(self.window_buffer[window_start]),
-                'exercise_changed': exercise_changed
+                'exercise_changed': exercise_changed,
+                'latency_ms': {
+                    'feature_combination': round(feature_combination_latency, 2),
+                    'exercise_classification': round(exercise_classification_latency, 2),
+                    'rep_detection': round(rep_detection_latency, 2),
+                    'processing_latency': round(processing_latency_ms, 2),
+                    'data_collection_latency': round(data_collection_latency_ms, 2),
+                    'total_latency': round(processing_latency_ms + data_collection_latency_ms, 2)
+                }
             }
+            
+            # Add individual confidence fields for each exercise
+            for exercise_name, confidence_value in scores.items():
+                field_name = f"{exercise_name.lower()}_confidence"
+                prediction_data[field_name] = round(float(confidence_value), 4)
             self.live_predictions.append(prediction_data)
             
             # Store sensor window data
             window_data = {
-                'window_start_ms': window_start,
+                'window_start_ms': int(window_start),
                 'sensor_windows': {}
             }
             
             for sensor_name, sensor_features in self.window_buffer[window_start].items():
                 # Store the raw sensor features (with suffixes)
                 window_data['sensor_windows'][sensor_name] = {
-                    'features': {k: float(v) if isinstance(v, np.floating) else v 
+                    'features': {k: float(v) if isinstance(v, (np.floating, np.integer)) else v 
                                for k, v in sensor_features.items()}
                 }
             
@@ -753,7 +793,7 @@ class LiveClassificationHandler:
             session_features = {}
             for sensor_name, sensor_features in self.window_buffer[window_start].items():
                 # Remove suffix from keys for session storage
-                original_features = {k.replace(f"_{sensor_name}", ""): v 
+                original_features = {k.replace(f"_{sensor_name}", ""): float(v) if isinstance(v, (np.floating, np.integer)) else v 
                                    for k, v in sensor_features.items()}
                 session_features.update(original_features)
             
@@ -843,7 +883,7 @@ class LiveClassificationHandler:
             # Generate timestamp for filenames
             timestamp = self.session_start_time.strftime("%Y%m%d_%H%M%S")
             
-            # Prepare session metadata
+            # Prepare session metadata with enhanced latency and confidence tracking
             session_metadata = {
                 'session_type': 'live_classification',
                 'start_time': self.session_start_time.isoformat(),
@@ -855,25 +895,102 @@ class LiveClassificationHandler:
                 'devices_connected': len(self.menu.connected_clients) if hasattr(self.menu, 'connected_clients') else 0
             }
             
-            # Save predictions data
+            # Calculate latency statistics
+            if self.live_predictions:
+                processing_latencies = [p.get('latency_ms', {}).get('processing_latency', 0) for p in self.live_predictions]
+                data_collection_latencies = [p.get('latency_ms', {}).get('data_collection_latency', 0) for p in self.live_predictions]
+                total_latencies = [p.get('latency_ms', {}).get('total_latency', 0) for p in self.live_predictions]
+                
+                session_metadata['latency_stats'] = {
+                    'processing_latency_ms': {
+                        'mean': round(sum(processing_latencies) / len(processing_latencies), 2),
+                        'min': round(min(processing_latencies), 2),
+                        'max': round(max(processing_latencies), 2),
+                        'std': round((sum((x - sum(processing_latencies)/len(processing_latencies))**2 for x in processing_latencies) / len(processing_latencies))**0.5, 2)
+                    },
+                    'data_collection_latency_ms': {
+                        'mean': round(sum(data_collection_latencies) / len(data_collection_latencies), 2),
+                        'min': round(min(data_collection_latencies), 2),
+                        'max': round(max(data_collection_latencies), 2),
+                        'std': round((sum((x - sum(data_collection_latencies)/len(data_collection_latencies))**2 for x in data_collection_latencies) / len(data_collection_latencies))**0.5, 2)
+                    },
+                    'total_latency_ms': {
+                        'mean': round(sum(total_latencies) / len(total_latencies), 2),
+                        'min': round(min(total_latencies), 2),
+                        'max': round(max(total_latencies), 2),
+                        'std': round((sum((x - sum(total_latencies)/len(total_latencies))**2 for x in total_latencies) / len(total_latencies))**0.5, 2)
+                    }
+                }
+            
+            # Calculate confidence statistics
+            if self.live_predictions:
+                exercise_confidences = [p['confidence'] for p in self.live_predictions]
+                rep_confidences = [p.get('rep_confidence', {}).get('detection_confidence', 0) for p in self.live_predictions]
+                
+                session_metadata['confidence_stats'] = {
+                    'exercise_confidence': {
+                        'mean': round(sum(exercise_confidences) / len(exercise_confidences), 4),
+                        'min': round(min(exercise_confidences), 4),
+                        'max': round(max(exercise_confidences), 4),
+                        'std': round((sum((x - sum(exercise_confidences)/len(exercise_confidences))**2 for x in exercise_confidences) / len(exercise_confidences))**0.5, 4)
+                    },
+                    'rep_detection_confidence': {
+                        'mean': round(sum(rep_confidences) / len(rep_confidences), 4),
+                        'min': round(min(rep_confidences), 4),
+                        'max': round(max(rep_confidences), 4),
+                        'std': round((sum((x - sum(rep_confidences)/len(rep_confidences))**2 for x in rep_confidences) / len(rep_confidences))**0.5, 4)
+                    }
+                }
+            
+            # Save predictions data with atomic write (write to temp file first, then rename)
             predictions_data = {
                 'session_metadata': session_metadata,
                 'predictions': self.live_predictions
             }
             
             predictions_filename = f"{data_dir}/live_predictions_{timestamp}.json"
-            with open(predictions_filename, 'w') as f:
-                json.dump(predictions_data, f, indent=2)
+            temp_predictions_filename = f"{predictions_filename}.tmp"
             
-            # Save sensor windows data
+            try:
+                # Write to temporary file first
+                with open(temp_predictions_filename, 'w') as f:
+                    json.dump(predictions_data, f, indent=2)
+                
+                # Atomic rename to final filename
+                os.rename(temp_predictions_filename, predictions_filename)
+            except Exception as e:
+                # Clean up temp file if something went wrong
+                if os.path.exists(temp_predictions_filename):
+                    try:
+                        os.remove(temp_predictions_filename)
+                    except:
+                        pass
+                raise e
+            
+            # Save sensor windows data with atomic write
             sensor_data = {
                 'session_metadata': session_metadata,
                 'sensor_windows': self.live_sensor_windows
             }
             
             sensor_filename = f"{data_dir}/live_sensor_data_{timestamp}.json"
-            with open(sensor_filename, 'w') as f:
-                json.dump(sensor_data, f, indent=2)
+            temp_sensor_filename = f"{sensor_filename}.tmp"
+            
+            try:
+                # Write to temporary file first
+                with open(temp_sensor_filename, 'w') as f:
+                    json.dump(sensor_data, f, indent=2)
+                
+                # Atomic rename to final filename
+                os.rename(temp_sensor_filename, sensor_filename)
+            except Exception as e:
+                # Clean up temp file if something went wrong
+                if os.path.exists(temp_sensor_filename):
+                    try:
+                        os.remove(temp_sensor_filename)
+                    except:
+                        pass
+                raise e
             
             logger.info(f"Live classification data saved to {data_dir}/")
             if self.ui:
@@ -923,8 +1040,8 @@ class LiveClassificationHandler:
         
         return exercise, confidence, scores
     
-    def _predict_window_reps(self, features: Dict) -> int:
-        """Predict reps in this window using hierarchical model"""
+    def _predict_window_reps_with_confidence(self, features: Dict) -> tuple:
+        """Predict reps in this window using hierarchical model with confidence scores"""
         X = self._create_feature_vector(features, rep_counter_features)
         
         # Stage 1: Activity Detection
@@ -932,11 +1049,36 @@ class LiveClassificationHandler:
         s1_proba = rep_detector_s1.predict_proba(X)[0, 1]
         
         if s1_proba <= DETECTION_THRESHOLD:
-            return 0
+            # No activity detected
+            return 0, {
+                'stage1_probability': float(s1_proba),
+                'stage1_confidence': float(s1_proba),
+                'stage1_threshold': DETECTION_THRESHOLD,
+                'stage2_probability': 0.0,  # No activity detected, so stage 2 not run
+                'stage2_prediction': -1,   # Invalid prediction (stage 2 not run)
+                'stage2_confidence': 0.0,  # No confidence in stage 2
+                'final_prediction': 0,
+                'detection_confidence': 1.0 - float(s1_proba)  # Confidence in "no activity"
+            }
         
         # Stage 2: Rep Counting (1 vs 2+)
         s2_pred = rep_counter_s2.predict(X)[0]
-        return 1 if s2_pred == 0 else 2
+        s2_proba = rep_counter_s2.predict_proba(X)[0]
+        
+        # For binary classification (1 vs 2+), s2_pred is 0 for 1 rep, 1 for 2+ reps
+        reps_predicted = 1 if s2_pred == 0 else 2
+        stage2_confidence = float(s2_proba[s2_pred])
+        
+        return reps_predicted, {
+            'stage1_probability': float(s1_proba),
+            'stage1_confidence': float(s1_proba),
+            'stage1_threshold': DETECTION_THRESHOLD,
+            'stage2_probability': float(s2_proba[1] if s2_pred == 1 else s2_proba[0]),  # Probability of predicted class
+            'stage2_prediction': int(s2_pred),
+            'stage2_confidence': stage2_confidence,
+            'final_prediction': reps_predicted,
+            'detection_confidence': stage2_confidence  # Overall confidence in the rep detection
+        }
     
     def _predict_session_reps(self) -> int:
         """Predict total session reps from all windows"""
@@ -1327,6 +1469,10 @@ class DataCollectionMenu:
                 # Add temporal and frequency features
                 features_dict.update(temporal_features)
                 features_dict.update(frequency_features)
+                
+                # Add quality metrics (approximated for live classification)
+                features_dict['processed_sample_count'] = len(sorted_buffer)
+                features_dict['quality_score'] = 1.0  # All samples are considered valid in live mode
                 
                 # Include synchronized window start for aggregation
                 window_start_timestamp_ms = sorted_buffer[0].absolute_timestamp_ms
