@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 HAR System - Data Collection Script
@@ -27,6 +28,19 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from collections import deque
 import threading
+import tkinter as tk
+from tkinter import ttk
+import numpy as np
+import pandas as pd
+from post_process_data import extract_temporal_features, extract_enhanced_frequency_features
+
+# ML Model Imports
+MODELS_LOADED = False
+try:
+    import joblib
+    MODELS_LOADED = True
+except Exception:
+    MODELS_LOADED = False
 
 # Load environment variables from .env file
 load_dotenv()
@@ -41,6 +55,34 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Attempt to load ML models (after logger is available)
+try:
+    if MODELS_LOADED:
+        exercise_model = joblib.load('exercise_classifier_model.joblib')
+        exercise_label_encoder = joblib.load('label_encoder.joblib')
+        exercise_features = joblib.load('exercise_classifier_features.joblib')
+
+        rep_detector_s1 = joblib.load('rep_detector_model_s1.joblib')
+        rep_counter_s2 = joblib.load('rep_counter_model_s2.joblib')
+        rep_counter_features = joblib.load('rep_counter_features.joblib')
+
+        session_model = joblib.load('session_reps_model.joblib')
+        session_features = joblib.load('session_reps_features.joblib')
+
+        logger.info("✓ All ML models loaded successfully")
+    else:
+        logger.warning("joblib not available; ML models will not be loaded")
+        exercise_model = exercise_label_encoder = exercise_features = None
+        rep_detector_s1 = rep_counter_s2 = rep_counter_features = None
+        session_model = session_features = None
+        MODELS_LOADED = False
+except Exception as e:
+    logger.error(f"Failed to load ML models: {e}")
+    MODELS_LOADED = False
+    exercise_model = exercise_label_encoder = exercise_features = None
+    rep_detector_s1 = rep_counter_s2 = rep_counter_features = None
+    session_model = session_features = None
 
 # MongoDB Configuration
 MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
@@ -327,6 +369,785 @@ def extract_window_features(samples: List[QuaternionSample], window_type: int,
     )
 
 
+# ------------------------------
+# Live Classification UI + Handler
+# ------------------------------
+class LiveClassificationUI(tk.Tk):
+    """Tkinter UI for live exercise classification"""
+    
+    def __init__(self, callback_handler):
+        super().__init__()
+        self.callback_handler = callback_handler
+        self.title("HAR Live Classification")
+        self.geometry("600x500")
+        self.minsize(500, 400)
+        
+        self.is_recording = False
+        self.total_reps = 0
+        self.window_count = 0
+        
+        self._setup_ui()
+        
+    def _setup_ui(self):
+        """Setup the UI layout"""
+        main_frame = ttk.Frame(self, padding=15)
+        main_frame.pack(fill="both", expand=True)
+        
+        # Title
+        title = ttk.Label(main_frame, text="Live Exercise Classification", 
+                         font=("Segoe UI", 20, "bold"))
+        title.pack(pady=(0, 20))
+        
+        # Exercise Label
+        self.exercise_label = ttk.Label(main_frame, text="—", 
+                                       font=("Segoe UI", 32, "bold"))
+        self.exercise_label.pack(pady=10)
+        
+        # Confidence
+        self.confidence_label = ttk.Label(main_frame, text="—%", 
+                                         font=("Segoe UI", 18))
+        self.confidence_label.pack(pady=5)
+        
+        # Rep Counter
+        self.rep_label = ttk.Label(main_frame, text="Total Reps: 0", 
+                                   font=("Segoe UI", 20))
+        self.rep_label.pack(pady=15)
+        
+        # Window Rep Status
+        self.window_rep_label = ttk.Label(main_frame, text="Window Status: —", 
+                                         font=("Segoe UI", 16))
+        self.window_rep_label.pack(pady=5)
+        
+        # Window Counter
+        self.window_label = ttk.Label(main_frame, text="Windows Processed: 0", 
+                                      font=("Segoe UI", 14))
+        self.window_label.pack(pady=5)
+        
+        # Exercise Summary (initially hidden)
+        self.exercise_summary_frame = ttk.Frame(main_frame)
+        self.exercise_summary_frame.pack(pady=15)
+        self.exercise_summary_label = ttk.Label(self.exercise_summary_frame, 
+                                               text="", 
+                                               font=("Segoe UI", 14, "bold"),
+                                               foreground="blue")
+        
+        # Status Log
+        log_label = ttk.Label(main_frame, text="Activity Log:", 
+                             font=("Segoe UI", 12, "bold"))
+        log_label.pack(pady=(10, 5))
+        
+        log_frame = ttk.Frame(main_frame)
+        log_frame.pack(fill="both", expand=True, pady=(0, 10))
+        
+        self.log_text = tk.Text(log_frame, height=6, wrap="word", 
+                               font=("Consolas", 9))
+        scrollbar = ttk.Scrollbar(log_frame, orient="vertical", 
+                                 command=self.log_text.yview)
+        self.log_text.configure(yscrollcommand=scrollbar.set)
+        
+        self.log_text.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Control Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10)
+        
+        self.start_btn = ttk.Button(button_frame, text="Start Set", 
+                                    command=self._on_start)
+        self.start_btn.pack(side="left", padx=5)
+        
+        self.stop_btn = ttk.Button(button_frame, text="Stop Set", 
+                                   command=self._on_stop, state="disabled")
+        self.stop_btn.pack(side="left", padx=5)
+        
+    def _on_start(self):
+        """Handle start button click"""
+        self.is_recording = True
+        self.total_reps = 0
+        self.window_count = 0
+        self.start_btn.config(state="disabled")
+        self.stop_btn.config(state="normal")
+        self.exercise_summary_label.config(text="")
+        self.window_rep_label.config(text="Window Status: —")
+        self.log("🟢 Set started")
+        self.callback_handler.on_start()
+        
+    def _on_stop(self):
+        """Handle stop button click"""
+        self.is_recording = False
+        self.start_btn.config(state="normal")
+        self.stop_btn.config(state="disabled")
+        self.log("🔴 Set stopped - Computing summary...")
+        self.callback_handler.on_stop()
+        
+    def update_classification(self, exercise: str, confidence: float):
+        """Update exercise classification display"""
+        self.exercise_label.config(text=exercise)
+        self.confidence_label.config(text=f"{confidence*100:.1f}%")
+        
+    def update_reps(self, reps_delta: int):
+        """Update rep counter"""
+        self.total_reps += reps_delta
+        self.rep_label.config(text=f"Total Reps: {self.total_reps}")
+        
+    def increment_window(self):
+        """Increment window counter"""
+        self.window_count += 1
+        self.window_label.config(text=f"Windows Processed: {self.window_count}")
+        
+    def show_session_prediction(self, predicted_reps: int):
+        """Show final session rep prediction"""
+        self.session_label.config(
+            text=f"Final Session Prediction: {predicted_reps} reps"
+        )
+        self.session_label.pack()
+        self.log(f"📊 Session model predicts: {predicted_reps} total reps")
+    
+    def reset_rep_counter(self):
+        """Reset the rep counter display for new exercise"""
+        self.total_reps = 0
+        self.rep_label.config(text="Total Reps: 0")
+    
+    def update_window_rep_status(self, has_reps: bool):
+        """Update window rep detection status"""
+        if has_reps:
+            self.window_rep_label.config(text="Window Status: REPS DETECTED", foreground="green")
+        else:
+            self.window_rep_label.config(text="Window Status: NO REPS", foreground="red")
+    
+    def show_exercise_summary(self, summary_text: str):
+        """Show exercise summary at end of session"""
+        self.exercise_summary_label.config(text=summary_text)
+        self.exercise_summary_label.pack()
+        
+    def log(self, message: str):
+        """Add message to activity log"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.log_text.insert("end", f"[{timestamp}] {message}\n")
+        self.log_text.see("end")
+
+
+class LiveClassificationHandler:
+    """Handles the connection between data collection and UI"""
+    
+    def __init__(self, menu):
+        self.menu = menu
+        self.ui = None
+        self.session_windows = []
+        self.is_active = False
+        self.window_buffer = {}  # Buffer to collect features from all sensors for each window
+        
+        # Live classification data storage
+        self.live_predictions = []  # Store prediction results with timestamps
+        self.live_sensor_windows = []  # Store raw sensor window data
+        self.session_start_time = None
+        
+        # Exercise and rep tracking
+        self.current_exercise = None
+        self.exercise_reps = {}  # Track reps per exercise
+        self.total_reps = 0
+        
+        # Exercise change detection
+        self.prediction_history = []  # Store recent predictions for change detection
+        self.history_size = 3  # Look at last 3 predictions for change detection
+        
+    def on_start(self):
+        """Called when Start Set button is clicked"""
+        self.is_active = True
+        self.session_windows = []
+        self.window_buffer = {}  # Clear window buffer for new session
+        
+        # Initialize live classification data storage
+        self.live_predictions = []
+        self.live_sensor_windows = []
+        self.session_start_time = datetime.now()
+        
+        # Reset exercise and rep tracking
+        self.current_exercise = None
+        self.exercise_reps = {}
+        self.total_reps = 0
+        self.prediction_history = []  # Reset prediction history
+        
+        # Schedule coroutine on the menu's asyncio loop from UI thread
+        if hasattr(self.menu, 'async_loop') and self.menu.async_loop:
+            asyncio.run_coroutine_threadsafe(self.menu.start_live_collection(), self.menu.async_loop)
+        else:
+            logger.error("No async loop available for scheduling start_live_collection")
+        
+    def on_stop(self):
+        """Called when Stop Set button is clicked"""
+        self.is_active = False
+        # Schedule coroutine on the menu's asyncio loop from UI thread
+        if hasattr(self.menu, 'async_loop') and self.menu.async_loop:
+            asyncio.run_coroutine_threadsafe(self.menu.stop_live_collection(), self.menu.async_loop)
+        else:
+            logger.error("No async loop available for scheduling stop_live_collection")
+        
+    def process_window_features(self, features: Dict[str, Any], 
+                                node_id: int, node_name: str):
+        """Process features from a single window - collect from all sensors before predicting"""
+        if not self.is_active or not MODELS_LOADED:
+            return
+            
+        try:
+            window_start = features.get('window_start_ms')
+            if window_start is None:
+                logger.error(f"No window_start_ms in features from {node_name}")
+                return
+            
+            logger.info(f"Received window from {node_name} at timestamp {window_start}")
+            
+            # Find or create a window group within tolerance (1 second)
+            window_group_key = self._find_window_group(window_start)
+            
+            # Add sensor suffix to feature names to match training format
+            sensor_suffix = f"_{node_name.upper()}"
+            features_with_suffix = {f"{key}{sensor_suffix}": value for key, value in features.items()}
+            
+            # Store features for this sensor in the window group
+            self.window_buffer[window_group_key][node_name] = features_with_suffix
+            
+            logger.info(f"📊 Window buffer has {len(self.window_buffer)} groups, current group {window_group_key} has {len(self.window_buffer[window_group_key])} sensors: {list(self.window_buffer[window_group_key].keys())}")
+            
+            # Check if we have data from all 4 sensors for this window group
+            expected_sensors = {'CHEST', 'BICEP', 'WRIST', 'THIGH'}
+            current_sensors = set(self.window_buffer[window_group_key].keys())
+            
+            if expected_sensors.issubset(current_sensors):
+                # All sensors have data - make combined prediction
+                logger.info(f"🎯 All sensors ready for window {window_group_key} - making prediction!")
+                self._process_complete_window(window_group_key)
+                
+                # Clean up old buffers (keep only recent windows)
+                self._cleanup_old_buffers(window_group_key)
+            
+        except Exception as e:
+            logger.error(f"Error processing window: {e}")
+            if self.ui:
+                self.ui.log(f"Processing error: {str(e)[:50]}")
+    
+    def _detect_exercise_change(self, exercise: str, confidence: float) -> bool:
+        """Detect if exercise has changed based on prediction history and confidence"""
+        # Add current prediction to history
+        self.prediction_history.append((exercise, confidence))
+        
+        # Keep only recent predictions
+        if len(self.prediction_history) > self.history_size:
+            self.prediction_history.pop(0)
+        
+        # If we don't have enough history yet, only change if confidence is high
+        if len(self.prediction_history) < 2:
+            return self.current_exercise != exercise and confidence > 0.7
+        
+        # Check if majority of recent predictions agree on different exercise
+        recent_exercises = [pred[0] for pred in self.prediction_history]
+        recent_confidences = [pred[1] for pred in self.prediction_history]
+        
+        # Count votes for each exercise
+        from collections import Counter
+        exercise_counts = Counter(recent_exercises)
+        
+        # Get the most common exercise in recent history
+        most_common_exercise, count = exercise_counts.most_common(1)[0]
+        
+        # Change if:
+        # 1. Most common recent exercise is different from current
+        # 2. At least 2 out of last 3 predictions agree (for history_size=3)
+        # 3. Current prediction has reasonable confidence (>50%)
+        should_change = (most_common_exercise != self.current_exercise and 
+                        count >= max(2, len(self.prediction_history) // 2 + 1) and
+                        confidence > 0.5)
+        
+        # Also change immediately if confidence drops significantly (possible transition)
+        if self.current_exercise and len(recent_confidences) >= 2:
+            avg_recent_confidence = sum(recent_confidences[-2:]) / 2
+            if confidence < avg_recent_confidence * 0.6 and confidence < 0.8:
+                # Confidence dropped significantly, be more willing to change
+                should_change = should_change or (exercise != self.current_exercise and confidence > 0.4)
+        
+        return bool(should_change)  # Ensure Python bool is returned
+    
+    def _process_complete_window(self, window_start: int):
+        """Process a complete window with data from all sensors"""
+        try:
+            # Start latency tracking
+            processing_start_time = time.time()
+            
+            # Combine features from all sensors
+            combined_features = {}
+            for sensor_features in self.window_buffer[window_start].values():
+                combined_features.update(sensor_features)
+            
+            # Remove window_start_ms features (not needed for prediction)
+            combined_features = {k: v for k, v in combined_features.items() 
+                               if not k.endswith('_ms')}
+            
+            logger.debug(f"Combined features for window {window_start}: {len(combined_features)} features")
+            
+            # Track feature combination latency
+            feature_combination_time = time.time()
+            feature_combination_latency = (feature_combination_time - processing_start_time) * 1000
+            
+            # 1. Exercise Classification with combined features
+            exercise, confidence, scores = self._predict_exercise(combined_features)
+            
+            # Check if exercise changed using smart detection
+            exercise_changed = self._detect_exercise_change(exercise, confidence)
+            exercise_changed = bool(exercise_changed)  # Convert numpy.bool_ to Python bool
+            if exercise_changed:
+                old_exercise = self.current_exercise
+                self.current_exercise = exercise
+                if old_exercise is not None:
+                    if self.ui:
+                        self.ui.log(f"🔄 Exercise changed from {old_exercise} to {exercise}")
+                # Reset UI rep counter for new exercise
+                if self.ui:
+                    self.ui.reset_rep_counter()
+                    self.ui.log(f"🎯 Now tracking: {exercise}")
+            
+            if self.ui:
+                self.ui.update_classification(exercise, confidence)
+                self.ui.log(f"🏋️ Detected: {exercise} ({confidence*100:.1f}%)")
+            
+            # Track exercise classification latency
+            exercise_classification_time = time.time()
+            exercise_classification_latency = (exercise_classification_time - feature_combination_time) * 1000
+            
+            # 2. Rep Detection (Window-level) - use combined features
+            reps_in_window, rep_confidence = self._predict_window_reps_with_confidence(combined_features)
+            
+            # Update rep tracking
+            if reps_in_window > 0:
+                self.total_reps += reps_in_window
+                if exercise not in self.exercise_reps:
+                    self.exercise_reps[exercise] = 0
+                self.exercise_reps[exercise] += reps_in_window
+                
+                if self.ui:
+                    self.ui.update_reps(reps_in_window)
+                    self.ui.log(f"✓ +{reps_in_window} rep(s) detected ({exercise})")
+            else:
+                if self.ui:
+                    self.ui.log(f"⭕ No reps detected in this window")
+            
+            # Update UI with window rep status
+            if self.ui:
+                self.ui.update_window_rep_status(reps_in_window > 0)
+            
+            # Track rep detection latency
+            rep_detection_time = time.time()
+            rep_detection_latency = (rep_detection_time - exercise_classification_time) * 1000
+            
+            # Calculate end-to-end latency
+            processing_end_time = time.time()
+            processing_latency_ms = (processing_end_time - processing_start_time) * 1000
+            
+            # Calculate data collection latency (from first sensor data to processing start)
+            first_sensor_time = min(sensor_features.get('window_start_ms', window_start) 
+                                  for sensor_features in self.window_buffer[window_start].values())
+            data_collection_latency_ms = (processing_start_time * 1000) - first_sensor_time
+            
+            # Store prediction data with enhanced confidence and latency info
+            prediction_data = {
+                'timestamp_ms': int(window_start),
+                'exercise': exercise,
+                'confidence': float(confidence),
+                'scores': {k: float(v) for k, v in scores.items()},
+                'reps_detected': int(reps_in_window),
+                'rep_confidence': rep_confidence,
+                'sensor_count': len(self.window_buffer[window_start]),
+                'exercise_changed': exercise_changed,
+                'latency_ms': {
+                    'feature_combination': round(feature_combination_latency, 2),
+                    'exercise_classification': round(exercise_classification_latency, 2),
+                    'rep_detection': round(rep_detection_latency, 2),
+                    'processing_latency': round(processing_latency_ms, 2),
+                    'data_collection_latency': round(data_collection_latency_ms, 2),
+                    'total_latency': round(processing_latency_ms + data_collection_latency_ms, 2)
+                }
+            }
+            
+            # Add individual confidence fields for each exercise
+            for exercise_name, confidence_value in scores.items():
+                field_name = f"{exercise_name.lower()}_confidence"
+                prediction_data[field_name] = round(float(confidence_value), 4)
+            self.live_predictions.append(prediction_data)
+            
+            # Store sensor window data
+            window_data = {
+                'window_start_ms': int(window_start),
+                'sensor_windows': {}
+            }
+            
+            for sensor_name, sensor_features in self.window_buffer[window_start].items():
+                # Store the raw sensor features (with suffixes)
+                window_data['sensor_windows'][sensor_name] = {
+                    'features': {k: float(v) if isinstance(v, (np.floating, np.integer)) else v 
+                               for k, v in sensor_features.items()}
+                }
+            
+            self.live_sensor_windows.append(window_data)
+            
+            # Store original features (without suffixes) for session-level prediction
+            # Combine original features from all sensors
+            session_features = {}
+            for sensor_name, sensor_features in self.window_buffer[window_start].items():
+                # Remove suffix from keys for session storage
+                original_features = {k.replace(f"_{sensor_name}", ""): float(v) if isinstance(v, (np.floating, np.integer)) else v 
+                                   for k, v in sensor_features.items()}
+                session_features.update(original_features)
+            
+            self.session_windows.append(session_features)
+            if self.ui:
+                self.ui.increment_window()
+            
+        except Exception as e:
+            logger.error(f"Error processing complete window: {e}")
+            if self.ui:
+                self.ui.log(f"Window processing error: {str(e)[:50]}")
+    
+    def _find_window_group(self, timestamp: int, tolerance_ms: int = 1000) -> int:
+        """Find or create a window group for the given timestamp within tolerance"""
+        logger.info(f"🔍 Looking for window group for timestamp {timestamp}")
+        # Look for existing window groups within tolerance
+        for existing_timestamp in self.window_buffer.keys():
+            if abs(timestamp - existing_timestamp) <= tolerance_ms:
+                logger.info(f"Found existing group {existing_timestamp} (diff: {abs(timestamp - existing_timestamp)}ms)")
+                return existing_timestamp
+        
+        # No matching group found, create new one
+        logger.info(f"🆕 Creating new window group {timestamp}")
+        self.window_buffer[timestamp] = {}
+        return timestamp
+    
+    def _cleanup_old_buffers(self, current_window: int, max_buffers: int = 10):
+        """Clean up old window buffers to prevent memory buildup"""
+        if len(self.window_buffer) <= max_buffers:
+            return
+            
+        # Keep only the most recent buffers
+        sorted_timestamps = sorted(self.window_buffer.keys())
+        buffers_to_remove = sorted_timestamps[:-max_buffers]  # Keep the last max_buffers
+        
+        for old_timestamp in buffers_to_remove:
+            if old_timestamp != current_window:  # Don't remove the current one
+                del self.window_buffer[old_timestamp]
+                logger.debug(f"🗑️ Cleaned up old buffer for window {old_timestamp}")
+    
+    def _show_exercise_summary(self):
+        """Show summary of reps performed for each exercise"""
+        if not self.exercise_reps:
+            if self.ui:
+                self.ui.log("No exercises tracked")
+            return
+            
+        if self.ui:
+            self.ui.log("Session Summary:")
+            for exercise, reps in self.exercise_reps.items():
+                self.ui.log(f"  {exercise}: {reps} reps")
+            self.ui.log(f"  Total: {self.total_reps} reps")
+            
+            # Show summary in UI
+            summary_text = "Session Complete!\n\n"
+            for exercise, reps in self.exercise_reps.items():
+                summary_text += f"{exercise}: {reps} reps\n"
+            summary_text += f"\nTotal: {self.total_reps} reps"
+            
+            self.ui.show_exercise_summary(summary_text)
+
+    
+    def finalize_session(self):
+        """Show exercise summary and save live classification data"""
+        if not self.session_windows or not MODELS_LOADED:
+            return
+            
+        try:
+            # Show exercise summary instead of session prediction
+            self._show_exercise_summary()
+            
+            # Save live classification data to JSON
+            self._save_live_classification_data()
+            
+        except Exception as e:
+            logger.error(f"Error finalizing session: {e}")
+            if self.ui:
+                self.ui.log(f"Session finalization failed")
+    
+    def _save_live_classification_data(self):
+        """Save all live classification data to JSON files"""
+        try:
+            # Create live_collection_data directory
+            data_dir = "live_collection_data"
+            os.makedirs(data_dir, exist_ok=True)
+            
+            # Generate timestamp for filenames
+            timestamp = self.session_start_time.strftime("%Y%m%d_%H%M%S")
+            
+            # Prepare session metadata with enhanced latency and confidence tracking
+            session_metadata = {
+                'session_type': 'live_classification',
+                'start_time': self.session_start_time.isoformat(),
+                'start_time_utc_ms': int(self.session_start_time.timestamp() * 1000),
+                'total_predictions': len(self.live_predictions),
+                'total_sensor_windows': len(self.live_sensor_windows),
+                'total_reps': self.total_reps,
+                'exercises_performed': self.exercise_reps,
+                'devices_connected': len(self.menu.connected_clients) if hasattr(self.menu, 'connected_clients') else 0
+            }
+            
+            # Calculate latency statistics
+            if self.live_predictions:
+                processing_latencies = [p.get('latency_ms', {}).get('processing_latency', 0) for p in self.live_predictions]
+                data_collection_latencies = [p.get('latency_ms', {}).get('data_collection_latency', 0) for p in self.live_predictions]
+                total_latencies = [p.get('latency_ms', {}).get('total_latency', 0) for p in self.live_predictions]
+                
+                session_metadata['latency_stats'] = {
+                    'processing_latency_ms': {
+                        'mean': round(sum(processing_latencies) / len(processing_latencies), 2),
+                        'min': round(min(processing_latencies), 2),
+                        'max': round(max(processing_latencies), 2),
+                        'std': round((sum((x - sum(processing_latencies)/len(processing_latencies))**2 for x in processing_latencies) / len(processing_latencies))**0.5, 2)
+                    },
+                    'data_collection_latency_ms': {
+                        'mean': round(sum(data_collection_latencies) / len(data_collection_latencies), 2),
+                        'min': round(min(data_collection_latencies), 2),
+                        'max': round(max(data_collection_latencies), 2),
+                        'std': round((sum((x - sum(data_collection_latencies)/len(data_collection_latencies))**2 for x in data_collection_latencies) / len(data_collection_latencies))**0.5, 2)
+                    },
+                    'total_latency_ms': {
+                        'mean': round(sum(total_latencies) / len(total_latencies), 2),
+                        'min': round(min(total_latencies), 2),
+                        'max': round(max(total_latencies), 2),
+                        'std': round((sum((x - sum(total_latencies)/len(total_latencies))**2 for x in total_latencies) / len(total_latencies))**0.5, 2)
+                    }
+                }
+            
+            # Calculate confidence statistics
+            if self.live_predictions:
+                exercise_confidences = [p['confidence'] for p in self.live_predictions]
+                rep_confidences = [p.get('rep_confidence', {}).get('detection_confidence', 0) for p in self.live_predictions]
+                
+                session_metadata['confidence_stats'] = {
+                    'exercise_confidence': {
+                        'mean': round(sum(exercise_confidences) / len(exercise_confidences), 4),
+                        'min': round(min(exercise_confidences), 4),
+                        'max': round(max(exercise_confidences), 4),
+                        'std': round((sum((x - sum(exercise_confidences)/len(exercise_confidences))**2 for x in exercise_confidences) / len(exercise_confidences))**0.5, 4)
+                    },
+                    'rep_detection_confidence': {
+                        'mean': round(sum(rep_confidences) / len(rep_confidences), 4),
+                        'min': round(min(rep_confidences), 4),
+                        'max': round(max(rep_confidences), 4),
+                        'std': round((sum((x - sum(rep_confidences)/len(rep_confidences))**2 for x in rep_confidences) / len(rep_confidences))**0.5, 4)
+                    }
+                }
+            
+            # Save predictions data with atomic write (write to temp file first, then rename)
+            predictions_data = {
+                'session_metadata': session_metadata,
+                'predictions': self.live_predictions
+            }
+            
+            predictions_filename = f"{data_dir}/live_predictions_{timestamp}.json"
+            temp_predictions_filename = f"{predictions_filename}.tmp"
+            
+            try:
+                # Write to temporary file first
+                with open(temp_predictions_filename, 'w') as f:
+                    json.dump(predictions_data, f, indent=2)
+                
+                # Atomic rename to final filename
+                os.rename(temp_predictions_filename, predictions_filename)
+            except Exception as e:
+                # Clean up temp file if something went wrong
+                if os.path.exists(temp_predictions_filename):
+                    try:
+                        os.remove(temp_predictions_filename)
+                    except:
+                        pass
+                raise e
+            
+            # Save sensor windows data with atomic write
+            sensor_data = {
+                'session_metadata': session_metadata,
+                'sensor_windows': self.live_sensor_windows
+            }
+            
+            sensor_filename = f"{data_dir}/live_sensor_data_{timestamp}.json"
+            temp_sensor_filename = f"{sensor_filename}.tmp"
+            
+            try:
+                # Write to temporary file first
+                with open(temp_sensor_filename, 'w') as f:
+                    json.dump(sensor_data, f, indent=2)
+                
+                # Atomic rename to final filename
+                os.rename(temp_sensor_filename, sensor_filename)
+            except Exception as e:
+                # Clean up temp file if something went wrong
+                if os.path.exists(temp_sensor_filename):
+                    try:
+                        os.remove(temp_sensor_filename)
+                    except:
+                        pass
+                raise e
+            
+            logger.info(f"Live classification data saved to {data_dir}/")
+            if self.ui:
+                self.ui.log(f"💾 Data saved to {data_dir}/")
+            
+        except Exception as e:
+            logger.error(f"Error saving live classification data: {e}")
+            if self.ui:
+                self.ui.log(f"⚠️ Failed to save data: {str(e)[:50]}")
+    
+    def _predict_exercise(self, features: Dict) -> tuple:
+        """Predict exercise type from features"""
+        # For exercise classification, we need SINGLE-SENSOR features
+        # The model was trained on individual sensor windows, not aggregated
+        
+        # Log feature keys for debugging
+        logger.debug(f"Input features keys: {sorted(features.keys())}")
+        
+        if exercise_features is None:
+            logger.error("exercise_features not loaded - cannot predict")
+            return "UNKNOWN", 0.0, {}
+        
+        # Create feature vector matching training
+        X = self._create_feature_vector(features, exercise_features)
+        
+        # Debug: log how many features matched
+        non_zero = (X != 0).sum()
+        logger.debug(f"Exercise prediction: {non_zero}/{len(exercise_features)} features non-zero")
+        
+        # DEBUG: Log input features and feature vector
+        logger.info(f"DEBUG - Input features: {features}")
+        logger.info(f"DEBUG - Feature vector shape: {X.shape}, non-zero features: {non_zero}/{len(exercise_features)}")
+        logger.info(f"DEBUG - Feature vector sample (first 10): {X[0][:10]}")
+        
+        pred = exercise_model.predict(X)[0]
+        proba = exercise_model.predict_proba(X)[0]
+        
+        exercise = exercise_label_encoder.inverse_transform([pred])[0]
+        confidence = proba[pred]
+        
+        scores = dict(zip(exercise_label_encoder.classes_, proba))
+        
+        # DEBUG: Log model output
+        logger.info(f"DEBUG - Model prediction: {pred} -> {exercise}")
+        logger.info(f"DEBUG - Confidence: {confidence:.4f}")
+        logger.info(f"DEBUG - All probabilities: {scores}")
+        
+        return exercise, confidence, scores
+    
+    def _predict_window_reps_with_confidence(self, features: Dict) -> tuple:
+        """Predict reps in this window using hierarchical model with confidence scores"""
+        X = self._create_feature_vector(features, rep_counter_features)
+        
+        # Stage 1: Activity Detection
+        DETECTION_THRESHOLD = 0.40
+        s1_proba = rep_detector_s1.predict_proba(X)[0, 1]
+        
+        if s1_proba <= DETECTION_THRESHOLD:
+            # No activity detected
+            return 0, {
+                'stage1_probability': float(s1_proba),
+                'stage1_confidence': float(s1_proba),
+                'stage1_threshold': DETECTION_THRESHOLD,
+                'stage2_probability': 0.0,  # No activity detected, so stage 2 not run
+                'stage2_prediction': -1,   # Invalid prediction (stage 2 not run)
+                'stage2_confidence': 0.0,  # No confidence in stage 2
+                'final_prediction': 0,
+                'detection_confidence': 1.0 - float(s1_proba)  # Confidence in "no activity"
+            }
+        
+        # Stage 2: Rep Counting (1 vs 2+)
+        s2_pred = rep_counter_s2.predict(X)[0]
+        s2_proba = rep_counter_s2.predict_proba(X)[0]
+        
+        # For binary classification (1 vs 2+), s2_pred is 0 for 1 rep, 1 for 2+ reps
+        reps_predicted = 1 if s2_pred == 0 else 2
+        stage2_confidence = float(s2_proba[s2_pred])
+        
+        return reps_predicted, {
+            'stage1_probability': float(s1_proba),
+            'stage1_confidence': float(s1_proba),
+            'stage1_threshold': DETECTION_THRESHOLD,
+            'stage2_probability': float(s2_proba[1] if s2_pred == 1 else s2_proba[0]),  # Probability of predicted class
+            'stage2_prediction': int(s2_pred),
+            'stage2_confidence': stage2_confidence,
+            'final_prediction': reps_predicted,
+            'detection_confidence': stage2_confidence  # Overall confidence in the rep detection
+        }
+    
+    def _predict_session_reps(self) -> int:
+        """Predict total session reps from all windows"""
+        # Aggregate window features
+        df_windows = pd.DataFrame(self.session_windows)
+        df_numeric = df_windows.select_dtypes(include=np.number)
+        
+        if df_numeric.empty:
+            return 0
+        
+        # Create session-level aggregations
+        aggregations = ['mean', 'std', 'min', 'max', 'median']
+        df_agg = df_numeric.agg(aggregations)
+        df_flat = df_agg.unstack().to_frame().T
+        df_flat.columns = [f'{i}_{j}' for i, j in df_flat.columns]
+        
+        # Add temporal features if enough windows
+        n_windows = len(df_numeric)
+        if n_windows > 1:
+            mid = n_windows // 2
+            
+            # First half
+            df_first = df_numeric.iloc[:mid].agg(aggregations)
+            df_first_flat = df_first.unstack().to_frame().T
+            df_first_flat.columns = [f'first_half_{i}_{j}' 
+                                     for i, j in df_first_flat.columns]
+            
+            # Second half
+            df_second = df_numeric.iloc[mid:].agg(aggregations)
+            df_second_flat = df_second.unstack().to_frame().T
+            df_second_flat.columns = [f'second_half_{i}_{j}' 
+                                      for i, j in df_second_flat.columns]
+            
+            # Trends
+            time_idx = np.arange(n_windows)
+            slopes = {}
+            for col in df_numeric.columns:
+                m, _ = np.polyfit(time_idx, df_numeric[col], 1)
+                slopes[f'{col}_trend_slope'] = m
+            df_slopes = pd.DataFrame([slopes])
+            
+            df_flat = pd.concat([df_flat, df_first_flat, 
+                                df_second_flat, df_slopes], axis=1)
+        
+        # Align with training features
+        X = self._align_features(df_flat, session_features)
+        
+        # Predict
+        pred = session_model.predict(X)[0]
+        return int(np.round(pred))
+    
+    def _create_feature_vector(self, features: Dict, 
+                               expected_features: List[str]) -> np.ndarray:
+        """Create aligned feature vector"""
+        df = pd.DataFrame([features])
+
+        # Reindex in one step to add missing columns and order correctly
+        df = df.reindex(columns=expected_features, fill_value=0)
+        return df.values
+    
+    def _align_features(self, df: pd.DataFrame, 
+                       expected_features: List[str]) -> np.ndarray:
+        """Align features with training set"""
+        # Reindex to ensure all expected features are present and ordered
+        df_aligned = df.reindex(columns=expected_features, fill_value=0)
+        return df_aligned.fillna(0).values
+
+
+
 # MENU SYSTEM
 class DataCollectionMenu:
     """Interactive menu for HAR data collection"""
@@ -356,6 +1177,320 @@ class DataCollectionMenu:
         self.processing_tasks: List[asyncio.Task] = []  # Background processing tasks
         self.packets_dropped: Dict[str, int] = {}  # Track dropped packets per device
         self.packets_received: Dict[str, int] = {}  # Track received packets per device
+
+        # Classification
+        self.classification_mode: bool = False  # stream to ML when true 
+        
+        # Live classification
+        self.classification_handler = None
+        self.classification_ui = None
+        self.classification_loop = None 
+
+    def send_features_to_ml(self, *, node_id: int, node_name: str,
+                            window_type: int, window_id: int,
+                            start_ms: int, end_ms: int,
+                            features: Dict[str, Any]) -> None:
+        
+        """Placeholder function to take data for ML"""
+        return
+    
+    async def handle_live_classification(self):
+        """Launch live classification UI"""
+        print("\n" + "=" * 70)
+        print("LIVE CLASSIFICATION")
+        print("=" * 70)
+
+        if not self.connected_clients:
+            print("No devices connected")
+            input("\nPress Enter to continue...")
+            return
+        
+        if not MODELS_LOADED:
+            print("ERROR: ML models not loaded. Cannot start classification.")
+            input("\nPress Enter to continue...")
+            return
+
+        print(f"Connected devices: {len(self.connected_clients)}")
+        for address in self.connected_clients.keys():
+            node_id = self.extract_node_id_from_name_by_address(address)
+            node_name = NODE_NAMES.get(node_id, "UNKNOWN")
+            print(f"  - {node_name}")
+
+        print("\nLaunching classification UI...")
+
+        # Run UI in separate thread
+        # Store the running asyncio loop so UI thread can schedule coroutines
+        try:
+            self.async_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # No running loop - get default event loop
+            self.async_loop = asyncio.get_event_loop()
+
+        # Create handler and UI (after async_loop is set)
+        self.classification_handler = LiveClassificationHandler(self)
+
+        ui_thread = threading.Thread(target=self._run_ui, daemon=True)
+        ui_thread.start()
+
+        # Wait for UI to be ready
+        await asyncio.sleep(1)
+
+        print("✓ Classification UI ready")
+        print("Use the UI to start/stop sets")
+        print("Press Enter to close UI and return to menu...")
+
+        await asyncio.get_event_loop().run_in_executor(None, input)
+
+        # Cleanup
+        if self.classification_ui:
+            self.classification_ui.quit()
+
+    def _run_ui(self):
+        """Run UI in separate thread"""
+        self.classification_ui = LiveClassificationUI(self.classification_handler)
+        self.classification_handler.ui = self.classification_ui
+        self.classification_ui.mainloop()
+
+    async def start_live_collection(self):
+        """Start live data collection for classification"""
+        logger.info("Starting live collection...")
+        
+        # Initialize buffers
+        device_buffers = {}
+        for address in self.connected_clients.keys():
+            device_buffers[address] = {
+                'raw_samples': [],
+                'short_window_buffer': [],
+                'long_window_buffer': [],
+                'samples_since_last_short': 0,
+                'samples_since_last_long': 0,
+                'short_window_id': 0,
+                'long_window_id': 0,
+                'windows': [],
+                'stats': {'total_packets': 0, 'total_samples': 0},
+                'session_absolute_start_ms': int(datetime.now().timestamp() * 1000)
+            }
+        
+        # Store for cleanup
+        self.live_buffers = device_buffers
+
+        # Initialize packet queues
+        for address in self.connected_clients.keys():
+            self.packet_queues[address] = asyncio.Queue(maxsize=self.PACKET_QUEUE_MAX_SIZE)
+            self.packets_received[address] = 0
+            self.packets_dropped[address] = 0
+
+        # Track first/last packet times per device (used by notification handler)
+        self.first_packet_time = {}
+        self.last_packet_time = {}
+        for address in self.connected_clients.keys():
+            self.first_packet_time[address] = None
+            self.last_packet_time[address] = None
+
+        # STEP 1: Synchronize timestamps across all devices
+        print("\n" + "=" * 70)
+        print("SYNCHRONIZING DEVICE TIMESTAMPS")
+        print("=" * 70)
+        
+        # Use relative timestamp (milliseconds from session start = 0)
+        sync_timestamp_ms = 0  # Session start is t=0
+        
+        print(f"Reference timestamp: {sync_timestamp_ms} ms (relative to session start)")
+        print(f"Syncing {len(self.connected_clients)} device(s)...\n")
+        
+        # Send time sync command to all devices
+        sync_tasks = []
+        for address, client in self.connected_clients.items():
+            task = self.send_time_sync_command(client, address, sync_timestamp_ms)
+            sync_tasks.append(task)
+        
+        sync_results = await asyncio.gather(*sync_tasks, return_exceptions=True)
+        successful_syncs = sum(1 for result in sync_results if result is True)
+        
+        if successful_syncs == 0:
+            logger.error("Failed to sync time on any device - aborting live collection")
+            print("[FAILED] Time synchronization failed on all devices")
+            return
+        
+        if successful_syncs < len(self.connected_clients):
+            logger.warning(f"Time sync failed on {len(self.connected_clients) - successful_syncs} device(s)")
+            print(f"[WARNING] Time synchronization failed on {len(self.connected_clients) - successful_syncs} device(s)")
+            print("Live classification may have timing issues")
+        
+        print(f"[OK] Time sync completed on {successful_syncs}/{len(self.connected_clients)} devices")
+
+        # Start notification handlers
+        self.processing_tasks = []
+        for address, client in self.connected_clients.items():
+            # Packet processor
+            proc_task = asyncio.create_task(
+                self.process_packet_queue_live(address, device_buffers)
+            )
+            self.processing_tasks.append(proc_task)
+            
+            # BLE notifications
+            notif_task = asyncio.create_task(
+                self.start_device_notifications(address, client, device_buffers)
+            )
+            self.processing_tasks.append(notif_task)
+
+        # Send start commands
+        for address, client in self.connected_clients.items():
+            await self.send_start_command(client, address)
+
+        logger.info("Live collection started")
+
+    async def stop_live_collection(self):
+        """Stop live data collection"""
+        logger.info("Stopping live collection...")
+
+        # Send stop commands
+        for address, client in self.connected_clients.items():
+            await self.send_stop_command(client, address)
+
+        # Cancel tasks
+        for task in self.processing_tasks:
+            if not task.done():
+                task.cancel()
+
+        await asyncio.gather(*self.processing_tasks, return_exceptions=True)
+
+        # Finalize session prediction
+        self.classification_handler.finalize_session()
+
+        logger.info("Live collection stopped")
+
+    async def process_packet_queue_live(self, address: str, 
+                                       device_buffers: Dict[str, Dict[str, Any]]):
+        """Process packets during live classification"""
+        node_id = self.extract_node_id_from_name_by_address(address)
+        node_name = NODE_NAMES.get(node_id, "UNKNOWN")
+        
+        try:
+            while True:
+                try:
+                    addr, data = await asyncio.wait_for(
+                        self.packet_queues[address].get(), 
+                        timeout=0.1
+                    )
+                    
+                    # Process packet (extract features when window completes)
+                    self.handle_orientation_data_live(addr, data, device_buffers)
+                    self.packet_queues[address].task_done()
+                    
+                except asyncio.TimeoutError:
+                    continue
+                    
+        except asyncio.CancelledError:
+            logger.info(f"Packet processor stopped for {node_name}")
+
+    def handle_orientation_data_live(self, address: str, data: bytes, 
+                                     device_buffers: Dict[str, Dict[str, Any]]):
+        """Handle orientation data and trigger ML predictions"""
+        try:
+            device_buffers[address]['stats']['total_packets'] += 1
+            
+            packet = self.parse_orientation_packet(data)
+            if not packet:
+                return
+            
+            device_buffers[address]['stats']['total_samples'] += 1
+            
+            buffer = device_buffers[address]
+            
+            # Create sample with timestamp
+            session_start_utc_ms = buffer['session_absolute_start_ms']
+            absolute_timestamp_ms = session_start_utc_ms + packet.timestamp
+            
+            sample = QuaternionSample(
+                absolute_timestamp_ms=absolute_timestamp_ms,
+                relative_timestamp_ms=packet.timestamp,
+                qw=packet.qw,
+                qx=packet.qx,
+                qy=packet.qy,
+                qz=packet.qz
+            )
+            
+            buffer['raw_samples'].append(sample)
+            buffer['long_window_buffer'].append(sample)
+            
+            if len(buffer['long_window_buffer']) > self.LONG_WINDOW_SIZE:
+                buffer['long_window_buffer'].pop(0)
+            
+            buffer['samples_since_last_long'] += 1
+            
+            # Check if we should extract long window features
+            if (buffer['samples_since_last_long'] >= self.LONG_WINDOW_STEP and
+                len(buffer['long_window_buffer']) >= self.LONG_WINDOW_SIZE):
+                
+                # Sort and extract features
+                sorted_buffer = sorted(buffer['long_window_buffer'], 
+                                      key=lambda s: s.absolute_timestamp_ms)
+                
+                # Extract full feature set (matching training data)
+                temporal_features = extract_temporal_features(sorted_buffer, sampling_rate=100)
+                frequency_features = extract_enhanced_frequency_features(sorted_buffer, sampling_rate=100)
+                
+                # Basic features
+                qw_vals = np.array([s.qw for s in sorted_buffer])
+                qx_vals = np.array([s.qx for s in sorted_buffer])
+                qy_vals = np.array([s.qy for s in sorted_buffer])
+                qz_vals = np.array([s.qz for s in sorted_buffer])
+                
+                qw_mean, qx_mean, qy_mean, qz_mean = np.mean(qw_vals), np.mean(qx_vals), np.mean(qy_vals), np.mean(qz_vals)
+                qw_std, qx_std, qy_std, qz_std = np.std(qw_vals), np.std(qx_vals), np.std(qy_vals), np.std(qz_vals)
+                
+                # SMA calculation
+                sma = np.mean(np.abs(qw_vals) + np.abs(qx_vals) + np.abs(qy_vals) + np.abs(qz_vals))
+                
+                # Dominant frequency (simplified)
+                try:
+                    from scipy import signal
+                    freqs, psd = signal.welch(qw_vals, fs=100, nperseg=min(256, len(qw_vals)))
+                    dominant_freq = float(freqs[np.argmax(psd)])
+                except:
+                    dominant_freq = 0.0
+                
+                # Combine all features
+                features_dict = {
+                    'qw_mean': qw_mean,
+                    'qx_mean': qx_mean,
+                    'qy_mean': qy_mean,
+                    'qz_mean': qz_mean,
+                    'qw_std': qw_std,
+                    'qx_std': qx_std,
+                    'qy_std': qy_std,
+                    'qz_std': qz_std,
+                    'sma': sma,
+                    'dominant_freq': dominant_freq,
+                    'total_samples': len(sorted_buffer)
+                }
+                
+                # Add temporal and frequency features
+                features_dict.update(temporal_features)
+                features_dict.update(frequency_features)
+                
+                # Add quality metrics (approximated for live classification)
+                features_dict['processed_sample_count'] = len(sorted_buffer)
+                features_dict['quality_score'] = 1.0  # All samples are considered valid in live mode
+                
+                # Include synchronized window start for aggregation
+                window_start_timestamp_ms = sorted_buffer[0].absolute_timestamp_ms
+                features_dict['window_start_ms'] = int(window_start_timestamp_ms)
+                
+                # Send to ML handler
+                node_id = packet.node_id
+                node_name = NODE_NAMES.get(node_id, "UNKNOWN")
+                self.classification_handler.process_window_features(
+                    features_dict, node_id, node_name
+                )
+                
+                buffer['long_window_id'] += 1
+                buffer['samples_since_last_long'] = 0
+                
+        except Exception as e:
+            logger.error(f"Error processing live data from {address}: {e}")
+        
         
     def clear_screen(self):
         """Clear terminal screen"""
@@ -415,6 +1550,7 @@ class DataCollectionMenu:
         print("  [3] Request Status from All Nodes")
         print("  [4] View Current Configuration")
         print("  [5] Reset All Sensor Nodes")
+        print("  [6] Live classification")
         print("  [0] Exit")
         print()
         print("-" * 70)
@@ -1213,6 +2349,9 @@ class DataCollectionMenu:
                 elif choice == '5':
                     # Reset node
                     await self.handle_reset()
+
+                elif choice == '6':
+                    await self.handle_live_classification()
                     
                 elif choice == '0':
                     # Exit
@@ -1964,6 +3103,16 @@ class DataCollectionMenu:
                 }
                 
                 buffer['windows'].append(window_data)
+                if self.classification_mode:
+                    self.send_features_to_ml(
+                    node_id=packet.node_id,
+                    node_name=NODE_NAMES.get(packet.node_id, "UNKNOWN"),
+                    window_type=window_data["window_type"], 
+                    window_id=window_data["window_id"],
+                    start_ms=window_data["window_start_ms"],
+                    end_ms=window_data["window_end_ms"],
+                    features=window_data["features"],
+                    )
                 buffer['short_window_id'] += 1
                 buffer['samples_since_last_short'] = 0
                 buffer['stats']['short_windows'] += 1
@@ -2022,6 +3171,16 @@ class DataCollectionMenu:
                 }
                 
                 buffer['windows'].append(window_data)
+                if self.classification_mode:
+                    self.send_features_to_ml(
+                    node_id=packet.node_id,
+                    node_name=NODE_NAMES.get(packet.node_id, "UNKNOWN"),
+                    window_type=window_data["window_type"],
+                    window_id=window_data["window_id"],
+                    start_ms=window_data["window_start_ms"],
+                    end_ms=window_data["window_end_ms"],
+                    features=window_data["features"],
+                    )
                 buffer['long_window_id'] += 1
                 buffer['samples_since_last_long'] = 0
                 buffer['stats']['long_windows'] += 1
@@ -2210,6 +3369,7 @@ IMPORTANT:
         
         print("\nReset commands sent to all devices")
         input("Press Enter to continue...")
+
 
 
 # MAIN ENTRY POINT
