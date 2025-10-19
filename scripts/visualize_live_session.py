@@ -119,6 +119,50 @@ def compute_latency_stats(pred_json):
     return meta.get('latency_stats', {})
 
 
+def detailed_stats(pred_json, pred_df):
+    stats = {}
+    # total reps from metadata if present
+    stats['total_reps'] = pred_json.get('session_metadata', {}).get('total_reps', None)
+
+    # per-prediction latencies: collect keys
+    lat_keys = set()
+    lat_values = {}
+    for p in pred_json.get('predictions', []):
+        l = p.get('latency_ms', {})
+        for k, v in l.items():
+            lat_keys.add(k)
+            lat_values.setdefault(k, []).append(v)
+
+    # summarize latencies
+    stats['latency_stage_stats'] = {}
+    import math
+    for k in sorted(lat_keys):
+        arr = lat_values.get(k, [])
+        if not arr:
+            continue
+        stats['latency_stage_stats'][k] = {
+            'mean': float(np.mean(arr)),
+            'min': float(np.min(arr)),
+            'max': float(np.max(arr)),
+            'std': float(np.std(arr, ddof=0))
+        }
+
+    # per-class mean/std confidences
+    classes = pred_df['exercise'].unique().tolist() if not pred_df.empty else []
+    stats['per_class_confidence'] = {}
+    for c in classes:
+        vals = pred_df[pred_df['exercise'] == c]['confidence']
+        stats['per_class_confidence'][c] = {
+            'mean': float(vals.mean()),
+            'std': float(vals.std())
+        }
+
+    # total detected reps across predictions
+    stats['reps_detected_total'] = int(sum(p.get('reps_detected', 0) for p in pred_json.get('predictions', [])))
+
+    return stats
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--pred-file', required=True)
@@ -141,14 +185,72 @@ def main():
     start_tag = start_iso.replace(':', '').replace('-', '').replace('.', '').replace('T', '_')
     out_png = os.path.join(args.out_dir, f'live_session_{start_tag}.png')
     out_json = os.path.join(args.out_dir, f'live_session_summary_{start_tag}.json')
+    out_csv = os.path.join(args.out_dir, f'live_session_stats_{start_tag}.csv')
 
     plot_session(pred_df, sensor_df, out_png)
 
     with open(out_json, 'w') as f:
         json.dump(summary, f, indent=2)
 
+    # Build a small statistics table (CSV)
+    rows = []
+    rows.append({'stat': 'total_predictions', 'value': summary.get('total_predictions', 0)})
+    rows.append({'stat': 'confidence_mean', 'value': summary.get('confidence_mean')})
+    rows.append({'stat': 'confidence_std', 'value': summary.get('confidence_std')})
+    # per-class counts and mean confidences
+    class_counts = summary.get('class_counts', {})
+    for cls, cnt in class_counts.items():
+        rows.append({'stat': f'class_count_{cls}', 'value': cnt})
+        # mean class confidence from pred_df if available
+        if f'score_{cls}' in pred_df.columns:
+            rows.append({'stat': f'class_mean_score_{cls}', 'value': float(pred_df[f'score_{cls}'].mean())})
+
+    import csv
+    with open(out_csv, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=['stat', 'value'])
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r)
+
     print('Saved plot to', out_png)
     print('Saved summary to', out_json)
+
+    # Detailed stats and table
+    det = detailed_stats(pred, pred_df)
+    out_json_detailed = os.path.join(args.out_dir, f'live_session_summary_detailed_{start_tag}.json')
+    with open(out_json_detailed, 'w') as f:
+        json.dump({'summary': summary, 'detailed': det}, f, indent=2)
+
+    # Also write a table CSV of interesting fields
+    out_table_csv = os.path.join(args.out_dir, f'live_session_table_{start_tag}.csv')
+    table_rows = []
+    # session-level fields
+    table_rows.append({'field': 'total_predictions', 'value': summary.get('total_predictions')})
+    table_rows.append({'field': 'total_sensor_windows', 'value': pred.get('session_metadata', {}).get('total_sensor_windows')})
+    table_rows.append({'field': 'total_reps_meta', 'value': pred.get('session_metadata', {}).get('total_reps')})
+    table_rows.append({'field': 'reps_detected_total', 'value': det.get('reps_detected_total')})
+
+    # latency stages
+    for k, v in det.get('latency_stage_stats', {}).items():
+        table_rows.append({'field': f'latency_{k}_mean', 'value': v['mean']})
+        table_rows.append({'field': f'latency_{k}_min', 'value': v['min']})
+        table_rows.append({'field': f'latency_{k}_max', 'value': v['max']})
+        table_rows.append({'field': f'latency_{k}_std', 'value': v['std']})
+
+    # per-class confidences
+    for c, v in det.get('per_class_confidence', {}).items():
+        table_rows.append({'field': f'class_{c}_mean_conf', 'value': v['mean']})
+        table_rows.append({'field': f'class_{c}_std_conf', 'value': v['std']})
+
+    with open(out_table_csv, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=['field', 'value'])
+        writer.writeheader()
+        for r in table_rows:
+            writer.writerow(r)
+
+    print('Saved detailed summary to', out_json_detailed)
+    print('Saved stats CSV to', out_csv)
+    print('Saved table CSV to', out_table_csv)
 
 
 if __name__ == '__main__':
